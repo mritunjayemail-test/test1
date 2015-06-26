@@ -45,6 +45,7 @@ func (s *StepTypeBootCommand) Run(state multistep.StateBag) multistep.StepAction
 	ui := state.Get("ui").(packer.Ui)
 	vncIp := state.Get("vnc_ip").(string)
 	vncPort := state.Get("vnc_port").(uint)
+	vncPassword := state.Get("vnc_password")
 
 	// Connect to VNC
 	ui.Say("Connecting to VM via VNC")
@@ -56,6 +57,14 @@ func (s *StepTypeBootCommand) Run(state multistep.StateBag) multistep.StepAction
 		return multistep.ActionHalt
 	}
 	defer nc.Close()
+
+	var auth []vnc.ClientAuth
+
+	if vncPassword != nil  {
+		auth = []vnc.ClientAuth{&vnc.PasswordAuth{Password: vncPassword.(string)}}
+	} else {
+		auth = []vnc.ClientAuth{}
+	}
 
 	c, err := vnc.Client(nc, &vnc.ClientConfig{Exclusive: false})
 	if err != nil {
