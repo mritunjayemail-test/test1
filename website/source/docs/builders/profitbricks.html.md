@@ -49,8 +49,6 @@ builder.
 
 -   `ssh_key_path` (string) - Path to private SSHkey. If no path to the key is provided Packer will create one under the name [snapshot_name]
 
--   `timeout` (duration) - Build timeout. Defaults to `100s`
-
 -   `url` (string) - Endpoint for the ProfitBricks REST API
 
 ## Example
