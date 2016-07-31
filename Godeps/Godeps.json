@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/mitchellh/packer",
+	"ImportPath": "github.com/StackPointCloud/packer",
 	"GoVersion": "go1.6",
 	"GodepVersion": "v74",
 	"Deps": [
@@ -673,6 +673,10 @@
 			"ImportPath": "github.com/Azure/azure-sdk-for-go/vendor/github.com/dgrijalva/jwt-go",
 			"Comment": "v3.0.0-2-gf077707",
 			"Rev": "f0777076321ab64f6efc15a82d9d23b98539b943"
+		},
+		{
+			"ImportPath": "github.com/profitbricks/profitbricks-sdk-go",
+			"Rev": "9dea2c24a0dc0740d93fd621ce845a1faede6826"
 		}
 	]
 }
