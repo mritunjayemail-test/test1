@@ -182,10 +182,9 @@ func (c *Core) Build(n string) (Build, error) {
 			}
 
 			current = append(current, coreBuildPostProcessor{
-				processor:         postProcessor,
-				processorType:     rawP.Type,
-				config:            rawP.Config,
-				keepInputArtifact: rawP.KeepInputArtifact,
+				processor:     postProcessor,
+				processorType: rawP.Type,
+				config:        rawP.Config,
 			})
 		}
 

@@ -39,9 +39,8 @@ type Builder struct {
 type PostProcessor struct {
 	OnlyExcept `mapstructure:",squash"`
 
-	Type              string
-	KeepInputArtifact bool `mapstructure:"keep_input_artifact"`
-	Config            map[string]interface{}
+	Type   string
+	Config map[string]interface{}
 }
 
 // Provisioner represents a provisioner within the template.
