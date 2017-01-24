@@ -43,6 +43,10 @@ func realMain() int {
 		UUID, _ := uuid.GenerateUUID()
 		os.Setenv("PACKER_RUN_UUID", UUID)
 
+		// Set the time packer was run in the environment, so all the plugins
+		// can use the same time.
+		os.Setenv("PACKER_RUN_TIME", fmt.Sprintf("%d", time.Now().Unix()))
+
 		// Determine where logs should go in general (requested by the user)
 		logWriter, err := logOutput()
 		if err != nil {

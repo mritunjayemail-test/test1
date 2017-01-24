@@ -19,7 +19,9 @@ import (
 var InitTime time.Time
 
 func init() {
-	InitTime = time.Now().UTC()
+	t := os.Getenv("PACKER_RUN_TIME")
+	ts, _ := strconv.ParseInt(t, 10, 64)
+	InitTime = time.Unix(ts, 0).UTC()
 }
 
 // Funcs are the interpolation funcs that are available within interpolations.
