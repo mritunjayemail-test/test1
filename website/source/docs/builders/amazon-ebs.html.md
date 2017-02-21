@@ -327,6 +327,19 @@ builder.
 -   `windows_password_timeout` (string) - The timeout for waiting for a Windows
     password for Windows instances. Defaults to 20 minutes. Example value: `10m`
 
+## Key Pair Behavior
+
+Packer's SSH key behavior changes with the options given. It's best summarized
+in a table:
+
+ssh_pwd|priv_key_file|keypair|temp_keypair|Packer should...
+-------|-----|-----|----|-------
+X | - | - | - | Just ssh with username and password
+\- | X | - | - | Just ssh with private key file
+\- | X | X | - | Ssh with private key file and "attach" the keypair to the instance
+\- | - | - | X | Create a temp ssh keypair with a particular name, clean it up
+\- | - | - | - | Create a temp ssh keypair, clean it up
+
 ## Basic Example
 
 Here is a basic example. You will need to provide access keys, and may need to
