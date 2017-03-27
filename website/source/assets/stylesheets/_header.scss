@@ -30,6 +30,7 @@
       padding-left: 64px;
       background: image-url('logo-text.svg') 0 0 no-repeat;
       background-position: left center;
+      background-size: auto 50px;
 
       &:hover, &:focus, &:active {
         outline: 0;

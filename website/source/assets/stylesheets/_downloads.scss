@@ -17,12 +17,13 @@ body.layout-downloads {
           padding-left: 95px;
 
           h2 {
-            margin-top: 30px;
+            margin-top: 25px;
+            border: none;
           }
 
           ul {
             padding-left: 0px;
-            margin-top: 8px;
+            margin: -8px 0 0 0;
           }
 
           li {
@@ -52,12 +53,7 @@ body.layout-downloads {
 
       .poweredby {
         margin-top: 20px;
-
-        img {
-          display: block;
-          margin: 0 auto;
-          width: 122px;
-        }
+        text-align: center;
       }
     }
   }
