@@ -1,12 +1,12 @@
 package packer
 
 import (
+	"bufio"
 	"io"
+	"log"
 	"os"
 	"strings"
 	"sync"
-
-	"github.com/mitchellh/iochan"
 )
 
 // CmdDisconnect is a sentinel value to indicate a RemoteCmd
@@ -87,6 +87,10 @@ type Communicator interface {
 // configured Writers for stdout/stderr, while also writing each line
 // as it comes to a Ui.
 func (r *RemoteCmd) StartWithUi(c Communicator, ui Ui) error {
+	return r.StartWithOutput(c, ui.Message)
+}
+
+func (r *RemoteCmd) StartWithOutput(c Communicator, outputHandler func(string)) error {
 	stdout_r, stdout_w := io.Pipe()
 	stderr_r, stderr_w := io.Pipe()
 	defer stdout_w.Close()
@@ -120,46 +124,18 @@ func (r *RemoteCmd) StartWithUi(c Communicator, ui Ui) error {
 	if err := c.Start(r); err != nil {
 		return err
 	}
-
-	// Create the channels we'll use for data
-	exitCh := make(chan struct{})
-	stdoutCh := iochan.DelimReader(stdout_r, '\n')
-	stderrCh := iochan.DelimReader(stderr_r, '\n')
-
-	// Start the goroutine to watch for the exit
-	go func() {
-		defer close(exitCh)
-		defer stdout_w.Close()
-		defer stderr_w.Close()
-		r.Wait()
-	}()
-
-	// Loop and get all our output
-OutputLoop:
-	for {
-		select {
-		case output := <-stderrCh:
-			if output != "" {
-				ui.Message(r.cleanOutputLine(output))
-			}
-		case output := <-stdoutCh:
-			if output != "" {
-				ui.Message(r.cleanOutputLine(output))
-			}
-		case <-exitCh:
-			break OutputLoop
+	read := func(output io.Reader) {
+		log.Println("StartWithOutput")
+		scanner := bufio.NewScanner(output)
+		for scanner.Scan() {
+			outputHandler(r.cleanOutputLine(scanner.Text()))
+		}
+		if err := scanner.Err(); err != nil {
+			log.Println("reading standard input:", err)
 		}
 	}
-
-	// Make sure we finish off stdout/stderr because we may have gotten
-	// a message from the exit channel before finishing these first.
-	for output := range stdoutCh {
-		ui.Message(strings.TrimSpace(output))
-	}
-
-	for output := range stderrCh {
-		ui.Message(strings.TrimSpace(output))
-	}
+	go read(stdout_r)
+	go read(stderr_r)
 
 	return nil
 }

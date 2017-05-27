@@ -79,14 +79,26 @@ func (c *Communicator) Upload(dst string, src io.Reader, fi *os.FileInfo) error 
 	}
 	tempfile.Close()
 
-	// Copy the file into place by copying the temporary file we put
-	// into the shared folder into the proper location in the container
 	cmd := &packer.RemoteCmd{
-		Command: fmt.Sprintf("command cp %s/%s %s", c.ContainerDir,
+		Command: fmt.Sprintf("echo %s/%s %s", c.ContainerDir,
 			filepath.Base(tempfile.Name()), dst),
 	}
 
-	if err := c.Start(cmd); err != nil {
+	if err := cmd.StartWithOutput(c, func(s string) { log.Println("docker echo:", s) }); err != nil {
+		return err
+	}
+
+	// Wait for the copy to complete
+	cmd.Wait()
+
+	// Copy the file into place by copying the temporary file we put
+	// into the shared folder into the proper location in the container
+	cmd = &packer.RemoteCmd{
+		Command: fmt.Sprintf("cxp %s/%s %s", c.ContainerDir,
+			filepath.Base(tempfile.Name()), dst),
+	}
+
+	if err := cmd.StartWithOutput(c, func(s string) { log.Println("docker upload:", s) }); err != nil {
 		return err
 	}
 
