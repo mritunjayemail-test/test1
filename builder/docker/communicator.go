@@ -65,7 +65,7 @@ func (c *Communicator) Upload(dst string, src io.Reader, fi *os.FileInfo) error 
 	// command format: docker cp /path/to/infile containerid:/path/to/outfile
 	log.Printf("Copying to %s on container %s.", dst, c.ContainerId)
 
-	localCmd := exec.Command("docker", "cp", "-", fmt.Sprintf("%s:%s", c.ContainerId, dst))
+	localCmd := exec.Command("docker", "cp", "-", fmt.Sprintf("%s:%s", c.ContainerId, filepath.Dir(dst)))
 
 	stderrP, err := localCmd.StderrPipe()
 	if err != nil {
@@ -81,11 +81,22 @@ func (c *Communicator) Upload(dst string, src io.Reader, fi *os.FileInfo) error 
 		return err
 	}
 
-	numBytes, err := io.Copy(pipe, src)
+	archive := tar.NewWriter(pipe)
+	header, err := tar.FileInfoHeader(*fi, "")
+	if err != nil {
+		return err
+	}
+	log.Printf("%+v", header)
+	archive.WriteHeader(header)
+	numBytes, err := io.Copy(archive, src)
 	if err != nil {
 		return fmt.Errorf("Failed to pipe upload: %s", err)
 	}
 	log.Printf("Copied %d bytes for %s", numBytes, dst)
+
+	if err := archive.Close(); err != nil {
+		return fmt.Errorf("Failed to close archive: %s", err)
+	}
 
 	stderrOut, err := ioutil.ReadAll(stderrP)
 	if err != nil {
