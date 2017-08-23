@@ -60,39 +60,40 @@ func (c *Communicator) Start(remote *packer.RemoteCmd) error {
 	return nil
 }
 
+// Upload uses docker cp to copy the file from the host to the container
 func (c *Communicator) Upload(dst string, src io.Reader, fi *os.FileInfo) error {
-	// Create a temporary file to store the upload
-	tempfile, err := ioutil.TempFile(c.HostDir, "upload")
-	if err != nil {
-		return err
-	}
-	defer os.Remove(tempfile.Name())
-
-	// Copy the contents to the temporary file
-	_, err = io.Copy(tempfile, src)
-	if err != nil {
-		return err
-	}
-
-	if fi != nil {
-		tempfile.Chmod((*fi).Mode())
-	}
-	tempfile.Close()
-
-	// Use docker cp to copy the file from the host to the container
 	// command format: docker cp /path/to/infile containerid:/path/to/outfile
-	cmd := exec.Command("docker", "cp", tempfile.Name(), fmt.Sprintf("%s:%s", c.ContainerId, dst))
+	log.Printf("Copying to %s on container %s.", dst, c.ContainerId)
 
-	log.Printf("Copying %s to %s on container %s.", tempfile.Name(), dst, c.ContainerId)
-	if err := cmd.Start(); err != nil {
+	localCmd := exec.Command("docker", "cp", "-", fmt.Sprintf("%s:%s", c.ContainerId, dst))
+
+	stderrP, err := localCmd.StderrPipe()
+	if err != nil {
+		return fmt.Errorf("Failed to open pipe: %s", err)
+	}
+
+	pipe, err := localCmd.StdinPipe()
+	if err != nil {
+		return fmt.Errorf("Failed to open pipe: %s", err)
+	}
+
+	if err := localCmd.Start(); err != nil {
 		return err
 	}
 
-	if err := cmd.Wait(); err != nil {
-		err = fmt.Errorf("Error uploading %s: %s",
-			tempfile.Name(),
-			err)
+	numBytes, err := io.Copy(pipe, src)
+	if err != nil {
+		return fmt.Errorf("Failed to pipe upload: %s", err)
+	}
+	log.Printf("Copied %d bytes for %s", numBytes, dst)
+
+	stderrOut, err := ioutil.ReadAll(stderrP)
+	if err != nil {
 		return err
+	}
+
+	if err := localCmd.Wait(); err != nil {
+		return fmt.Errorf("Failed to upload to '%s' in container: %s. %s.", dst, stderrOut, err)
 	}
 
 	return nil
