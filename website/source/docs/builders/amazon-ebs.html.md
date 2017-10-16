@@ -45,8 +45,6 @@ builder.
 
 ### Required:
 
--   `access_key` (string) - The access key used to communicate with AWS. [Learn
-    how to set this.](/docs/builders/amazon.html#specifying-amazon-credentials)
 
 -   `ami_name` (string) - The name of the resulting AMI that will appear when
     managing AMIs in the AWS console or via APIs. This must be unique. To help
@@ -56,11 +54,7 @@ builder.
 -   `instance_type` (string) - The EC2 instance type to use while building the
     AMI, such as `t2.small`.
 
--   `region` (string) - The name of the region, such as `us-east-1`, in which to
-    launch the EC2 instance to create the AMI.
 
--   `secret_key` (string) - The secret key used to communicate with AWS. [Learn
-    how to set this.](/docs/builders/amazon.html#specifying-amazon-credentials)
 
 -   `source_ami` (string) - The initial AMI used as a base for the newly
     created machine. `source_ami_filter` may be used instead to populate this
@@ -194,14 +188,6 @@ builder.
     preserved when booting from the AMI built with Packer. See
     `ami_block_device_mappings`, above, for details.
 
--   `mfa_code` (string) - The MFA [TOTP](https://en.wikipedia.org/wiki/Time-based_One-time_Password_Algorithm)
-    code. This should probably be a user variable since it changes all the time.
-
--   `profile` (string) - The profile to use in the shared credentials file for
-    AWS. See Amazon's documentation on [specifying
-    profiles](https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html#specifying-profiles)
-    for more details.
-
 -   `region_kms_key_ids` (map of strings) - a map of regions to copy the ami to,
     along with the custom kms key id to use for encryption for that region.
     Keys must match the regions provided in `ami_regions`. If you just want to
@@ -243,9 +229,6 @@ builder.
 -   `shutdown_behavior` (string) - Automatically terminate instances on shutdown
     in case Packer exits ungracefully. Possible values are "stop" and "terminate",
     default is `stop`.
-
--   `skip_region_validation` (boolean) - Set to true if you want to skip
-    validation of the region configuration option. Default `false`.
 
 -   `snapshot_groups` (array of strings) - A list of groups that have access to
     create volumes from the snapshot(s). By default no groups have permission to create
@@ -344,11 +327,6 @@ builder.
 -   `temporary_key_pair_name` (string) - The name of the temporary key pair
     to generate. By default, Packer generates a name that looks like
     `packer_<UUID>`, where &lt;UUID&gt; is a 36 character unique identifier.
-
--   `token` (string) - The access token to use. This is different from the
-    access key and secret key. If you're not sure what this is, then you
-    probably don't need it. This will also be read from the `AWS_SESSION_TOKEN`
-    environmental variable.
 
 -   `user_data` (string) - User data to apply when launching the instance. Note
     that you need to be careful about escaping characters due to the templates

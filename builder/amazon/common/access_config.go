@@ -14,15 +14,44 @@ import (
 
 // AccessConfig is for common configuration related to AWS access
 type AccessConfig struct {
-	AccessKey         string `mapstructure:"access_key"`
+	/* The access key used to communicate with AWS. [Learn
+	how to set this.](/docs/builders/amazon.html#specifying-amazon-credentials)
+	*/
+	AccessKey string `mapstructure:"access_key"`
+	/* This option is useful if you use
+	another cloud provider that provide a compatible API with aws EC2.
+	specify another endpoint like this "<https://ec2.another.endpoint>..com"
+	*/
 	CustomEndpointEc2 string `mapstructure:"custom_endpoint_ec2"`
-	MFACode           string `mapstructure:"mfa_code"`
-	ProfileName       string `mapstructure:"profile"`
-	RawRegion         string `mapstructure:"region"`
-	SecretKey         string `mapstructure:"secret_key"`
-	SkipValidation    bool   `mapstructure:"skip_region_validation"`
-	Token             string `mapstructure:"token"`
-	session           *session.Session
+	/* The MFA [TOTP](https://en.wikipedia.org/wiki/Time-based_One-time_Password_Algorithm)
+	code. This should probably be a user variable since it changes all the time.
+	*/
+	MFACode string `mapstructure:"mfa_code"`
+	/* The profile to use in the shared credentials file for
+	AWS. See Amazon's documentation on [specifying
+	profiles](https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html#specifying-profiles)
+	for more details.
+	*/
+	ProfileName string `mapstructure:"profile"`
+	/* The name of the region, such as `us-east-1`, in which to
+	launch the EC2 instance to create the AMI.
+	*/
+	RawRegion string `mapstructure:"region"`
+	/* Secret key used to communicate with AWS. [Learn
+	how to set this.](/docs/builders/amazon.html#specifying-amazon-credentials)
+	*/
+	SecretKey string `mapstructure:"secret_key"`
+	/* Set to true if you want to skip
+	validation of the region configuration option. Default `false`.
+	*/
+	SkipValidation bool `mapstructure:"skip_region_validation"`
+	/* The access token to use. This is different from the
+	access key and secret key. If you're not sure what this is, then you
+	probably don't need it. This will also be read from the `AWS_SESSION_TOKEN`
+	environmental variable.
+	*/
+	Token   string `mapstructure:"token"`
+	session *session.Session
 }
 
 // Config returns a valid aws.Config object for access to AWS services, or
