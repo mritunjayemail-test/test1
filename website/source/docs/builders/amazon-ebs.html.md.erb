@@ -1,4 +1,6 @@
 ---
+modeline: |
+  vim: set ft=markdown:
 description: |
     The amazon-ebs Packer builder is able to create Amazon AMIs backed by EBS
     volumes for use in EC2. For more information on the difference between
@@ -45,20 +47,8 @@ builder.
 
 ### Required:
 
-
--   `ami_name` (string) - The name of the resulting AMI that will appear when
-    managing AMIs in the AWS console or via APIs. This must be unique. To help
-    make this unique, use a function like `timestamp` (see [template
-    engine](/docs/templates/engine.html) for more info)
-
--   `instance_type` (string) - The EC2 instance type to use while building the
-    AMI, such as `t2.small`.
-
-
-
--   `source_ami` (string) - The initial AMI used as a base for the newly
-    created machine. `source_ami_filter` may be used instead to populate this
-    automatically.
+<%= partial("config-options", :locals => {
+  :render_for => :amazon_ebs, :required => true }) %>
 
 ### Optional:
 
@@ -223,7 +213,7 @@ builder.
 
 -   `temporary_security_group_source_cidr` (string) - An IPv4 CIDR block to be authorized
     access to the instance, when packer is creating a temporary security group.
-    The default is `0.0.0.0/0` (ie, allow any IPv4 source). This is only used 
+    The default is `0.0.0.0/0` (ie, allow any IPv4 source). This is only used
     when `security_group_id` or `security_group_ids` is not specified.
 
 -   `shutdown_behavior` (string) - Automatically terminate instances on shutdown

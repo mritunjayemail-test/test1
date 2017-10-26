@@ -1,0 +1,34 @@
+required:
+  - name: access_key
+    type: string
+    docs: |
+      The access key used to communicate with AWS. [Learn
+      how to set this.](/docs/builders/amazon.html#specifying-amazon-credentials)
+  - name: ami_name
+    type: string
+    docs: |
+      The name of the resulting AMI that will appear when
+      managing AMIs in the AWS console or via APIs. This must be unique. To help
+      make this unique, use a function like `timestamp` (see [template
+      engine](/docs/templates/engine.html) for more info)
+  - name: instance_type
+    type: string
+    docs: |
+      The EC2 instance type to use while building the
+      AMI, such as `t2.small`.
+  - name: region
+    type: string
+    docs: |
+      The name of the region, such as `us-east-1`, in which to
+      launch the EC2 instance to create the AMI.
+  - name: secret_key
+    type: string
+    docs: |
+      The secret key used to communicate with AWS. [Learn
+      how to set this.](/docs/builders/amazon.html#specifying-amazon-credentials)
+  - name: source_ami
+    type: string
+    docs: |
+      The initial AMI used as a base for the newly
+      created machine. `source_ami_filter` may be used instead to populate this
+      automatically.
