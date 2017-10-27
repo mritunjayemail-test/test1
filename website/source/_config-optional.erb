@@ -1,0 +1,3 @@
+<% data.send(current_page.data.sidebar_current).optional.each do |f| %>
+-  `<%= f.name %>` (<%= f.type %>) - <%= f.docs %>
+<% end %>
