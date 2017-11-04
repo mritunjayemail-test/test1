@@ -205,6 +205,17 @@ func wrappedMain() int {
 		Ui:    ui,
 	}
 
+	// We shortcut "--version" and "-v" to just show the version
+	for _, arg := range args {
+		if arg == "-v" || arg == "-version" || arg == "--version" {
+			newArgs := make([]string, len(args)+1)
+			newArgs[0] = "version"
+			copy(newArgs[1:], args)
+			args = newArgs
+			break
+		}
+	}
+
 	cli := &cli.CLI{
 		Args:       args,
 		Commands:   Commands,
