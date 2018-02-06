@@ -315,6 +315,11 @@ func (p *Provisioner) retryable(f func() error) error {
 			return nil
 		}
 
+		te, ok := err.(common.MattError)
+		if ok && !te.Retryable() {
+			return err
+		}
+
 		// Create an error and log it
 		err = fmt.Errorf("Retryable error: %s", err)
 		log.Print(err.Error())

@@ -27,7 +27,7 @@ func (s *StepProvision) Run(_ context.Context, state multistep.StateBag) multist
 	if comm == nil {
 		raw, ok := state.Get("communicator").(packer.Communicator)
 		if ok {
-			comm = raw.(packer.Communicator)
+			comm = raw
 		}
 	}
 	hook := state.Get("hook").(packer.Hook)

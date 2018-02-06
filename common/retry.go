@@ -52,3 +52,19 @@ func Retry(initialInterval float64, maxInterval float64, numTries uint, function
 	}
 	return nil
 }
+
+type MattError interface {
+	Retryable() bool
+}
+
+type NonRetryableError struct {
+	Err error
+}
+
+func (e *NonRetryableError) Error() string {
+	return e.Err.Error()
+}
+
+func (NonRetryableError) Retryable() bool {
+	return false
+}

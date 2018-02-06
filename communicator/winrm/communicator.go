@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/hashicorp/packer/common"
 	"github.com/hashicorp/packer/packer"
 	"github.com/masterzen/winrm"
 	"github.com/packer-community/winrmcp/winrmcp"
@@ -136,7 +137,7 @@ func (c *Communicator) Upload(path string, input io.Reader, fi *os.FileInfo) err
 	}
 	stdout, _, _, err := client.RunWithString(fmt.Sprintf("powershell -Command \"(Get-Item %s) -is [System.IO.DirectoryInfo]\"", path), "")
 	if err != nil {
-		return fmt.Errorf("Couldn't determine whether destination was a folder or file: %s", err)
+		return &common.NonRetryableError{fmt.Errorf("Couldn't determine whether destination was a folder or file: %s", err)}
 	}
 	if strings.Contains(stdout, "True") {
 		// The path exists and is a directory.
