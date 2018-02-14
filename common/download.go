@@ -279,11 +279,17 @@ func (d *HTTPDownloader) Download(dst *os.File, src *url.URL) error {
 
 	resp, err := httpClient.Do(req)
 	if err == nil && (resp.StatusCode >= 200 && resp.StatusCode < 300) {
+
 		// If the HEAD request succeeded, then attempt to set the range
 		// query if we can.
 		if resp.Header.Get("Accept-Ranges") == "bytes" {
 			if fi, err := dst.Stat(); err == nil {
 				if _, err = dst.Seek(0, os.SEEK_END); err == nil {
+					// if the remote file is the same size as our local file, consider it
+					// downloaded
+					if resp.ContentLength == fi.Size() {
+						return nil
+					}
 					req.Header.Set("Range", fmt.Sprintf("bytes=%d-", fi.Size()))
 
 					d.current = uint64(fi.Size())
@@ -298,6 +304,11 @@ func (d *HTTPDownloader) Download(dst *os.File, src *url.URL) error {
 	resp, err = httpClient.Do(req)
 	if err != nil {
 		return err
+	}
+
+	// If our get request has a bad status, return an error
+	if !(resp.StatusCode >= 200 && resp.StatusCode < 300) {
+		return fmt.Errorf("Got unexpected status code %d while downloading.", resp.StatusCode)
 	}
 
 	d.total = d.current + uint64(resp.ContentLength)

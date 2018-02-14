@@ -330,10 +330,10 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			Checksum:     b.config.ISOChecksum,
 			ChecksumType: b.config.ISOChecksumType,
 			Description:  "ISO",
-			ResultKey:    "iso_path",
-			Url:          b.config.ISOUrls,
 			Extension:    b.config.TargetExtension,
+			ResultKey:    "iso_path",
 			TargetPath:   b.config.TargetPath,
+			Url:          b.config.ISOUrls,
 		},
 		&common.StepCreateFloppy{
 			Files:       b.config.FloppyConfig.FloppyFiles,
