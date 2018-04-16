@@ -649,11 +649,23 @@ func CopyExportedVirtualMachine(expPath string, outputPath string, vhdDir string
 
 	var script = `
 param([string]$srcPath, [string]$dstPath, [string]$vhdDirName, [string]$vmDir)
-Move-Item -Path (Join-Path (Get-Item $srcPath).FullName "*.*") -Destination $dstPath
-Move-Item -Path (Join-Path (Get-Item $srcPath).FullName $vhdDirName) -Destination $dstPath
-Move-Item -Path (Join-Path (Get-Item $srcPath).FullName $vmDir) -Destination $dstPath
-`
 
+Move-Item -Path (Join-Path (Get-Item $srcPath).FullName "*.*") -Destination $dstPath
+
+$VirtualHarddisksPath = Join-Path -Path $dstPath -ChildPath $vhdDirName
+if (!(Test-Path $VirtualHarddisksPath)) {
+	New-Item -ItemType Directory -Force -Path $VirtualHarddisksPath
+}
+
+Move-Item -Path (Join-Path (Join-Path (Get-Item $srcPath).FullName $vhdDirName) "*.*") -Destination $VirtualHarddisksPath
+
+$VirtualMachinePath = Join-Path -Path $dstPath -ChildPath $vmDir
+if (!(Test-Path $VirtualMachinePath)) {
+	New-Item -ItemType Directory -Force -Path $VirtualMachinePath
+}
+
+Move-Item -Path (Join-Path (Join-Path (Get-Item $srcPath).FullName $vmDir) "*.*") -Destination $VirtualMachinePath
+`
 	var ps powershell.PowerShellCmd
 	err := ps.Run(script, expPath, outputPath, vhdDir, vmDir)
 	return err
