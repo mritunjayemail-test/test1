@@ -32,7 +32,7 @@ type Artifact struct {
 	Type   string   `hcl:"type,label"`
 	Name   string   `hcl:"name,label"`
 	Source *string  `hcl:"source,attr"`
-	Remain hcl.Body `hcl:",remain"`
+	Remain hcl.Body `hcl:",remain"` // remainin body will be used by artifact implementers
 }
 
 // DefaultLoader is the default loader object
