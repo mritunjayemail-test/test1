@@ -14,6 +14,10 @@ func nillifyRemains(artifacts []Artifact) {
 	for i := range artifacts {
 		r := &artifacts[i]
 		r.Remain = nil // fix it to nil for now
+		for i := range r.Provisioners {
+			r := &r.Provisioners[i]
+			r.Remain = nil
+		}
 		nillifyRemains(r.Artifacts)
 	}
 }
@@ -32,15 +36,18 @@ func TestLoad(t *testing.T) {
 		{"google-simple", args{testdir("google-simple")}, &Root{
 			Artifacts: []Artifact{
 				{"googlecompute", "ubuntu-1804-lts", nil,
+					[]Provisioner{{"shell", nil}},
 					[]Artifact{
 						{
 							"googlecompute", "ubuntu-1804-lts-consul", nil,
-							[]Artifact{{"compress", "ubuntu-1804-lts-consul.gz", nil, nil, nil}},
+							[]Provisioner{{"shell", nil}},
+							[]Artifact{{"compress", "ubuntu-1804-lts-consul.gz", nil, nil, nil, nil}},
 							nil,
 						},
 						{
 							"googlecompute", "ubuntu-1804-lts-vault", nil,
-							[]Artifact{{"compress", "ubuntu-1804-lts-vault.gz", nil, nil, nil}},
+							[]Provisioner{{"shell", nil}},
+							[]Artifact{{"compress", "ubuntu-1804-lts-vault.gz", nil, nil, nil, nil}},
 							nil,
 						},
 					},

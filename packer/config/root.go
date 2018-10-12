@@ -21,17 +21,24 @@ func (root *Root) Merge(toMerge *Root) {
 	}
 }
 
-// Artifact represents a packer artifact
+// Artifact represents a basic packer artifact
 type Artifact struct {
-	Type      string     `hcl:"type,label"`
-	Name      string     `hcl:"name,label"`
-	Source    *string    `hcl:"source,attr"`
-	Artifacts []Artifact `hcl:"artifact,block"`
-	Remain    hcl.Body   `hcl:",remain"` // remainin body will be used by artifact implementers
+	Type         string        `hcl:"type,label"`
+	Name         string        `hcl:"name,label"`
+	Source       *string       `hcl:"source,attr"`
+	Provisioners []Provisioner `hcl:"provisioner,block"`
+	Artifacts    []Artifact    `hcl:"artifact,block"` // children
+	Remain       hcl.Body      `hcl:",remain"`        // remainin body will be used by artifact implementers
 }
 
 // FullName returns the full addressable name of this artifact
 func (a *Artifact) FullName() string {
 	name := strings.Join([]string{"artifact", a.Type, a.Name}, ".")
 	return name
+}
+
+// Provisioner represents a basic packer provisioner
+type Provisioner struct {
+	Type   string   `hcl:"type,label"`
+	Remain hcl.Body `hcl:",remain"` // remainin body will be used by implementers
 }
