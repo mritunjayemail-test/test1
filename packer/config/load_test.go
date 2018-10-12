@@ -9,7 +9,14 @@ import (
 )
 
 func testdir(name string) string { return filepath.Join("./testdir", name) }
-func ptrstr(name string) *string { return &name }
+
+func nillifyRemains(artifacts []Artifact) {
+	for i := range artifacts {
+		r := &artifacts[i]
+		r.Remain = nil // fix it to nil for now
+		nillifyRemains(r.Artifacts)
+	}
+}
 
 func TestLoad(t *testing.T) {
 	type args struct {
@@ -24,20 +31,29 @@ func TestLoad(t *testing.T) {
 		// {"not-found", args{"404"}, nil, 1},
 		{"google-simple", args{testdir("google-simple")}, &Root{
 			Artifacts: []Artifact{
-				{"googlecompute", "ubuntu-1804-lts", nil, nil},
-				{"googlecompute", "ubuntu-1804-lts-consul", ptrstr("artifact.googlecompute.ubuntu-1804-lts"), nil},
-				{"compress", "ubuntu-1804-lts-consul.gz", ptrstr("artifact.googlecompute.ubuntu-1804-lts-consul"), nil},
-				{"googlecompute", "ubuntu-1804-lts-vault", ptrstr("artifact.googlecompute.ubuntu-1804-lts"), nil},
-				{"compress", "ubuntu-1804-lts-vault.gz", ptrstr("artifact.googlecompute.ubuntu-1804-lts-vault"), nil},
+				{"googlecompute", "ubuntu-1804-lts", nil,
+					[]Artifact{
+						{
+							"googlecompute", "ubuntu-1804-lts-consul", nil,
+							[]Artifact{{"compress", "ubuntu-1804-lts-consul.gz", nil, nil, nil}},
+							nil,
+						},
+						{
+							"googlecompute", "ubuntu-1804-lts-vault", nil,
+							[]Artifact{{"compress", "ubuntu-1804-lts-vault.gz", nil, nil, nil}},
+							nil,
+						},
+					},
+					nil},
 			},
 		}, 0},
+		{"google-simple", args{testdir("google-source-not-found")}, nil, 1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gotRoot, gotDiags := Load(tt.args.location)
-			for i := range gotRoot.Artifacts {
-				r := &gotRoot.Artifacts[i]
-				r.Remain = nil // fix it to nil for now
+			if gotRoot != nil {
+				nillifyRemains(gotRoot.Artifacts)
 			}
 			if diff := cmp.Diff(tt.wantRoot, gotRoot); diff != "" {
 				t.Errorf("Load() -want +got: \n%s", diff)
