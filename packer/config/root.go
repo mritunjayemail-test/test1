@@ -28,7 +28,7 @@ type Artifact struct {
 	Source       *string       `hcl:"source,attr"`
 	Provisioners []Provisioner `hcl:"provisioner,block"`
 	Artifacts    []Artifact    `hcl:"artifact,block"` // children
-	Remain       hcl.Body      `hcl:",remain"`        // remainin body will be used by artifact implementers
+	Remain       hcl.Body      `hcl:",remain"`        // remaining body will be used by artifact implementer
 }
 
 // FullName returns the full addressable name of this artifact
