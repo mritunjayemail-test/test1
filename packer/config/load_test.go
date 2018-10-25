@@ -35,19 +35,22 @@ func TestLoad(t *testing.T) {
 		// {"not-found", args{"404"}, nil, 1},
 		{"google-simple", args{testdir("google-simple")}, &Root{
 			Artifacts: []Artifact{
-				{"googlecompute", "ubuntu-1804-lts", nil,
+				{0, nil, nil, nil,
+					"googlecompute", "ubuntu-1804-lts", nil,
 					[]Provisioner{{"shell", nil}},
 					[]Artifact{
 						{
+							0, nil, nil, nil,
 							"googlecompute", "ubuntu-1804-lts-consul", nil,
 							[]Provisioner{{"shell", nil}},
-							[]Artifact{{"compress", "ubuntu-1804-lts-consul.gz", nil, nil, nil, nil}},
+							[]Artifact{{0, nil, nil, nil, "compress", "ubuntu-1804-lts-consul.gz", nil, nil, nil, nil}},
 							nil,
 						},
 						{
+							0, nil, nil, nil,
 							"googlecompute", "ubuntu-1804-lts-vault", nil,
 							[]Provisioner{{"shell", nil}},
-							[]Artifact{{"compress", "ubuntu-1804-lts-vault.gz", nil, nil, nil, nil}},
+							[]Artifact{{0, nil, nil, nil, "compress", "ubuntu-1804-lts-vault.gz", nil, nil, nil, nil}},
 							nil,
 						},
 					},
