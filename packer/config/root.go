@@ -22,6 +22,22 @@ func (root *Root) Merge(toMerge *Root) {
 	}
 }
 
+// Operation defines different lifecycle
+// name/identifier for different lifecycle
+// steps of packer.
+//
+// New Operations might be added in the future.
+type Operation int
+
+var (
+	// Validation indicates that
+	// a validation operation is in progress
+	Validation Operation
+	// Build indicates that
+	// a build operation is in progress
+	Build Operation = 200
+)
+
 // Artifact represents the configuration for
 // a basic packer artifact run step.
 // It should be viewed as a config.Artifact
@@ -32,6 +48,10 @@ func (root *Root) Merge(toMerge *Root) {
 //
 // Pointer mark fields as not required
 type Artifact struct {
+	// Operation is set at runtime and
+	// tells what operation is being run.
+	Operation
+
 	Debug        *bool         `hcl:"debug"`
 	Force        *bool         `hcl:"force"`
 	OnError      *string       `hcl:"on_error"`
