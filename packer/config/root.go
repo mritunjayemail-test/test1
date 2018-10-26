@@ -8,7 +8,8 @@ import (
 	"github.com/imdario/mergo"
 )
 
-// Root of a packer configuration
+// Root of a packer configuration tree
+//
 type Root struct {
 	Artifacts []Artifact `hcl:"artifact,block"`
 }
