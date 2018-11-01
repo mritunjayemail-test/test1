@@ -28,7 +28,9 @@ func (loader *Loader) Load(location string) (*Root, hcl.Diagnostics) {
 		return nil, diags
 	}
 
-	root := &Root{}
+	root := &Root{
+		Files: hclFiles,
+	}
 	for _, file := range hclFiles {
 		current := &Root{}
 		diags = append(diags, gohcl.DecodeBody(file.Body, nil, current)...)

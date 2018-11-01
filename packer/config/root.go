@@ -11,6 +11,7 @@ import (
 // Root of a packer configuration tree
 //
 type Root struct {
+	Files     map[string]*hcl.File
 	Artifacts []Artifact `hcl:"artifact,block"`
 }
 

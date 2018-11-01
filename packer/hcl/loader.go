@@ -21,7 +21,7 @@ var DefaultLoader = &Loader{
 }
 
 // Load content of location using DefaultLoader.
-func Load(location string) (files []*hcl.File, diags hcl.Diagnostics) {
+func Load(location string) (files map[string]*hcl.File, diags hcl.Diagnostics) {
 	return DefaultLoader.Load(location)
 }
 
@@ -32,7 +32,7 @@ func Load(location string) (files []*hcl.File, diags hcl.Diagnostics) {
 // When location is a file, said file will then be loaded.
 // When no file matching recognized extensions were found,
 // an error is returned.
-func (loader *Loader) Load(location string) ([]*hcl.File, hcl.Diagnostics) {
+func (loader *Loader) Load(location string) (map[string]*hcl.File, hcl.Diagnostics) {
 	fi, err := os.Stat(location)
 	if err != nil {
 		return nil, hcl.Diagnostics{
@@ -73,19 +73,19 @@ func (loader *Loader) Load(location string) ([]*hcl.File, hcl.Diagnostics) {
 	return hclfiles, hcldiags
 }
 
-// load files into obj.
-func (loader *Loader) load(files []string) (hclfiles []*hcl.File, diags hcl.Diagnostics) {
+// load files into obj using absolute path
+func (loader *Loader) load(files []string) (hclfiles map[string]*hcl.File, diags hcl.Diagnostics) {
 	parser := hclparse.NewParser()
-
-	for _, file := range files {
+	hclfiles = map[string]*hcl.File{}
+	for _, fileName := range files {
 		var moreFiles *hcl.File
 		var moreDiags hcl.Diagnostics
 
-		switch ex := extension(file); {
+		switch ex := extension(fileName); {
 		case loader.isJSON(ex):
-			moreFiles, moreDiags = parser.ParseJSONFile(file)
+			moreFiles, moreDiags = parser.ParseJSONFile(fileName)
 		case loader.isHCL(ex):
-			moreFiles, moreDiags = parser.ParseHCLFile(file)
+			moreFiles, moreDiags = parser.ParseHCLFile(fileName)
 		default:
 			continue // file type not recognized
 		}
@@ -93,7 +93,7 @@ func (loader *Loader) load(files []string) (hclfiles []*hcl.File, diags hcl.Diag
 		if diags.HasErrors() {
 			continue // for now, it's probably better to get all errors from beginning
 		}
-		hclfiles = append(hclfiles, moreFiles)
+		hclfiles[fileName] = moreFiles
 	}
 	return
 }

@@ -64,6 +64,7 @@ func TestLoad(t *testing.T) {
 			gotRoot, gotDiags := Load(tt.args.location)
 			if gotRoot != nil {
 				nillifyRemains(gotRoot.Artifacts)
+				gotRoot.Files = nil
 			}
 			if diff := cmp.Diff(tt.wantRoot, gotRoot); diff != "" {
 				t.Errorf("Load() -want +got: \n%s", diff)
