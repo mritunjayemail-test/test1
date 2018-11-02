@@ -1,17 +1,13 @@
 package command
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
 
-	"github.com/hashicorp/hcl"
-	"github.com/hashicorp/packer/fix"
 	"github.com/hashicorp/packer/packer"
 	"github.com/hashicorp/packer/template"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/posener/complete"
 )
 
@@ -82,61 +78,6 @@ func (c *ValidateCommand) Run(args []string) int {
 		if err != nil {
 			errs = append(errs, fmt.Errorf("Errors validating build '%s'. %s", b.Name(), err))
 		}
-	}
-
-	// Check if any of the configuration is fixable
-	var rawTemplateData map[string]interface{}
-	input := make(map[string]interface{})
-	templateData := make(map[string]interface{})
-	err = hcl.Unmarshal(tpl.RawContents, &rawTemplateData)
-	if err != nil {
-		log.Printf("decode err: %v", err)
-	}
-	for k, v := range rawTemplateData {
-		if vals, ok := v.([]interface{}); ok {
-			if len(vals) == 0 {
-				continue
-			}
-		}
-		templateData[strings.ToLower(k)] = v
-		input[strings.ToLower(k)] = v
-	}
-
-	// fix rawTemplateData into input
-	for _, name := range fix.FixerOrder {
-		var err error
-		fixer, ok := fix.Fixers[name]
-		if !ok {
-			panic("fixer not found: " + name)
-		}
-		input, err = fixer.Fix(input)
-		if err != nil {
-			c.Ui.Error(fmt.Sprintf("Error checking against fixers: %s", err))
-			return 1
-		}
-	}
-	// delete empty top-level keys since the fixers seem to add them
-	// willy-nilly
-	for k := range input {
-		ml, ok := input[k].([]map[string]interface{})
-		if !ok {
-			continue
-		}
-		if len(ml) == 0 {
-			delete(input, k)
-		}
-	}
-	// marshal/unmarshal to make comparable to templateData
-	var fixedData map[string]interface{}
-	// Guaranteed to be valid json, so we can ignore errors
-	j, _ := json.Marshal(input)
-	json.Unmarshal(j, &fixedData)
-
-	if diff := cmp.Diff(templateData, fixedData); diff != "" {
-		c.Ui.Say("[warning] Fixable configuration found.")
-		c.Ui.Say("You may need to run `packer fix` to get your build to run")
-		c.Ui.Say("correctly. See debug log for more information.\n")
-		log.Printf("Fixable config differences:\n%s", diff)
 	}
 
 	if len(errs) > 0 {

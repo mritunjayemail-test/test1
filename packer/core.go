@@ -1,329 +1,147 @@
 package packer
 
 import (
+	"context"
 	"fmt"
-	"sort"
+	"os"
 
-	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/go-version"
-	"github.com/hashicorp/packer/template"
-	"github.com/hashicorp/packer/template/interpolate"
+	"golang.org/x/sync/errgroup"
+
+	"github.com/hashicorp/hcl2/hcl"
+	"github.com/hashicorp/packer/packer/artifact"
+
+	"github.com/hashicorp/packer/packer/config"
 )
 
 // Core is the main executor of Packer. If Packer is being used as a
 // library, this is the struct you'll want to instantiate to get anything done.
 type Core struct {
-	Template *template.Template
+	config *config.Root
 
-	components ComponentFinder
-	variables  map[string]string
-	builds     map[string]*template.Builder
-	version    string
-	secrets    []string
+	getComponent ComponentFinder
+	secrets      []string
+	operations   []config.Operation
+
+	debug bool
 }
 
-// CoreConfig is the structure for initializing a new Core. Once a CoreConfig
-// is used to initialize a Core, it shouldn't be re-used or modified again.
-type CoreConfig struct {
-	Components         ComponentFinder
-	Template           *template.Template
-	Variables          map[string]string
-	SensitiveVariables []string
-	Version            string
-}
-
-// The function type used to lookup Builder implementations.
-type BuilderFunc func(name string) (Builder, error)
-
-// The function type used to lookup Hook implementations.
-type HookFunc func(name string) (Hook, error)
-
-// The function type used to lookup PostProcessor implementations.
-type PostProcessorFunc func(name string) (PostProcessor, error)
-
-// The function type used to lookup Provisioner implementations.
-type ProvisionerFunc func(name string) (Provisioner, error)
-
-// ComponentFinder is a struct that contains the various function
-// pointers necessary to look up components of Packer such as builders,
+// ComponentFinder is a function
+// pointer necessary to look up components of Packer such as builders,
 // commands, etc.
-type ComponentFinder struct {
-	Builder       BuilderFunc
-	Hook          HookFunc
-	PostProcessor PostProcessorFunc
-	Provisioner   ProvisionerFunc
+type ComponentFinder func(name string) (artifact.Handler, error)
+
+// An Option allows to configure a Core
+// packer configuration.
+type Option func(*Core) error
+
+// AllOperations is the list of operation called
+// on each packer handler referenced by config.
+var AllOperations = []config.Operation{
+	config.Validation,
+	config.Build,
 }
 
-// NewCore creates a new Core.
-func NewCore(c *CoreConfig) (*Core, error) {
+// NewCore creates and configures a new Core.
+//
+// NewCore will flatten cfg.Artifacts into a
+// 1 dimensional array for traversal simplicity
+//
+func NewCore(cfg *config.Root, cpts ComponentFinder, options ...Option) (*Core, error) {
 	result := &Core{
-		Template:   c.Template,
-		components: c.Components,
-		variables:  c.Variables,
-		version:    c.Version,
+		config:       cfg,
+		getComponent: cpts,
+		operations:   AllOperations,
 	}
 
-	if err := result.validate(); err != nil {
-		return nil, err
-	}
-	if err := result.init(); err != nil {
-		return nil, err
-	}
-	for _, secret := range result.secrets {
-		LogSecretFilter.Set(secret)
-	}
-
-	// Go through and interpolate all the build names. We should be able
-	// to do this at this point with the variables.
-	result.builds = make(map[string]*template.Builder)
-	for _, b := range c.Template.Builders {
-		v, err := interpolate.Render(b.Name, result.Context())
-		if err != nil {
-			return nil, fmt.Errorf(
-				"Error interpolating builder '%s': %s",
-				b.Name, err)
+	for _, opt := range options {
+		if err := opt(result); err != nil {
+			return nil, err
 		}
-
-		result.builds[v] = b
 	}
 
 	return result, nil
 }
 
-// BuildNames returns the builds that are available in this configured core.
-func (c *Core) BuildNames() []string {
-	r := make([]string, 0, len(c.builds))
-	for n := range c.builds {
-		r = append(r, n)
-	}
-	sort.Strings(r)
+// Run executes set of instructions given configurations
+func (c *Core) Run(ctx context.Context) {
 
-	return r
-}
-
-// Build returns the Build object for the given name.
-func (c *Core) Build(n string) (Build, error) {
-	// Setup the builder
-	configBuilder, ok := c.builds[n]
-	if !ok {
-		return nil, fmt.Errorf("no such build found: %s", n)
+	type ContextCancel struct {
+		Context context.Context
+		Cancel  func()
 	}
-	builder, err := c.components.Builder(configBuilder.Type)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"error initializing builder '%s': %s",
-			configBuilder.Type, err)
-	}
-	if builder == nil {
-		return nil, fmt.Errorf(
-			"builder type not found: %s", configBuilder.Type)
-	}
+	contexts := map[string]ContextCancel{}
+	diags := diagnosticReceiver{}
 
-	// rawName is the uninterpolated name that we use for various lookups
-	rawName := configBuilder.Name
+	for _, operation := range c.operations {
+		ctx := context.WithValue(ctx, "operation", operation)
 
-	// Setup the provisioners for this build
-	provisioners := make([]coreBuildProvisioner, 0, len(c.Template.Provisioners))
-	for _, rawP := range c.Template.Provisioners {
-		// If we're skipping this, then ignore it
-		if rawP.Skip(rawName) {
-			continue
+		idx := artifact.Index{}
+
+		// initialize each artifact's context
+		for _, artifact := range c.config.Artifacts {
+			childCtx, cancel := context.WithCancel(ctx)
+			contexts[artifact.FullName()] = ContextCancel{childCtx, cancel}
 		}
 
-		// Get the provisioner
-		provisioner, err := c.components.Provisioner(rawP.Type)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"error initializing provisioner '%s': %s",
-				rawP.Type, err)
-		}
-		if provisioner == nil {
-			return nil, fmt.Errorf(
-				"provisioner type not found: %s", rawP.Type)
-		}
+		// start artifacts
+		wg := errgroup.Group{}
+		for _, artifact := range c.config.Artifacts {
+			artifact := artifact // avoid race contitions
+			childCtx := contexts[artifact.FullName()].Context
+			cancel := contexts[artifact.FullName()].Cancel
 
-		// Get the configuration
-		config := make([]interface{}, 1, 2)
-		config[0] = rawP.Config
-		if rawP.Override != nil {
-			for _, override := range rawP.Override {
-				if override, ok := override[rawName]; ok {
-					config = append(config, override)
+			// run artifact command
+			wg.Go(func() error {
+				defer cancel()
+
+				if artifact.Source != nil {
+					sourceCtx := contexts[*artifact.Source].Context
+
+					<-sourceCtx.Done() // wait for source to be done
+
+					if diags.Diagnostics().HasErrors() {
+						// there is an error somewhere
+						// let's leave quietly
+						return nil
+					}
 				}
-			}
-		}
 
-		// If we're pausing, we wrap the provisioner in a special pauser.
-		if rawP.PauseBefore > 0 {
-			provisioner = &PausedProvisioner{
-				PauseBefore: rawP.PauseBefore,
-				Provisioner: provisioner,
-			}
-		}
+				handler, err := c.getComponent(artifact.Type)
+				if err != nil {
+					diags.Append(&hcl.Diagnostic{
+						Severity: hcl.DiagError,
+						Summary:  fmt.Sprintf("Error getting component %s", artifact.Type),
+						Detail:   fmt.Sprintf("%v", err),
+						// TODO(azr): find way to add detail on where
+						// type is defined in file for a more precise output
+					})
+				}
 
-		provisioners = append(provisioners, coreBuildProvisioner{
-			pType:       rawP.Type,
-			provisioner: provisioner,
-			config:      config,
-		})
-	}
-
-	// Setup the post-processors
-	postProcessors := make([][]coreBuildPostProcessor, 0, len(c.Template.PostProcessors))
-	for _, rawPs := range c.Template.PostProcessors {
-		current := make([]coreBuildPostProcessor, 0, len(rawPs))
-		for _, rawP := range rawPs {
-			// If we skip, ignore
-			if rawP.Skip(rawName) {
-				continue
-			}
-
-			// Get the post-processor
-			postProcessor, err := c.components.PostProcessor(rawP.Type)
-			if err != nil {
-				return nil, fmt.Errorf(
-					"error initializing post-processor '%s': %s",
-					rawP.Type, err)
-			}
-			if postProcessor == nil {
-				return nil, fmt.Errorf(
-					"post-processor type not found: %s", rawP.Type)
-			}
-
-			current = append(current, coreBuildPostProcessor{
-				processor:         postProcessor,
-				processorType:     rawP.Type,
-				config:            rawP.Config,
-				keepInputArtifact: rawP.KeepInputArtifact,
+				newDiags := handler.Handle(childCtx, artifact, idx)
+				diags.Extend(newDiags)
+				return nil
 			})
-		}
 
-		// If we have no post-processors in this chain, just continue.
-		if len(current) == 0 {
-			continue
-		}
-
-		postProcessors = append(postProcessors, current)
-	}
-
-	// TODO hooks one day
-
-	return &coreBuild{
-		name:           n,
-		builder:        builder,
-		builderConfig:  configBuilder.Config,
-		builderType:    configBuilder.Type,
-		postProcessors: postProcessors,
-		provisioners:   provisioners,
-		templatePath:   c.Template.Path,
-		variables:      c.variables,
-	}, nil
-}
-
-// Context returns an interpolation context.
-func (c *Core) Context() *interpolate.Context {
-	return &interpolate.Context{
-		TemplatePath:  c.Template.Path,
-		UserVariables: c.variables,
-	}
-}
-
-// validate does a full validation of the template.
-//
-// This will automatically call template.validate() in addition to doing
-// richer semantic checks around variables and so on.
-func (c *Core) validate() error {
-	// First validate the template in general, we can't do anything else
-	// unless the template itself is valid.
-	if err := c.Template.Validate(); err != nil {
-		return err
-	}
-
-	// Validate the minimum version is satisfied
-	if c.Template.MinVersion != "" {
-		versionActual, err := version.NewVersion(c.version)
-		if err != nil {
-			// This shouldn't happen since we set it via the compiler
-			panic(err)
-		}
-
-		versionMin, err := version.NewVersion(c.Template.MinVersion)
-		if err != nil {
-			return fmt.Errorf(
-				"min_version is invalid: %s", err)
-		}
-
-		if versionActual.LessThan(versionMin) {
-			return fmt.Errorf(
-				"This template requires Packer version %s or higher; using %s",
-				versionMin,
-				versionActual)
-		}
-	}
-
-	// Validate variables are set
-	var err error
-	for n, v := range c.Template.Variables {
-		if v.Required {
-			if v, ok := c.variables[n]; !ok || v == "" {
-				err = multierror.Append(err, fmt.Errorf(
-					"required variable not set: %s", n))
+			if c.debug {
+				//TODO(azr): ui say why we wait
+				wg.Wait()
 			}
 		}
-	}
 
-	// TODO: validate all builders exist
-	// TODO: ^^ provisioner
-	// TODO: ^^ post-processor
-
-	return err
-}
-
-func (c *Core) init() error {
-	if c.variables == nil {
-		c.variables = make(map[string]string)
-	}
-
-	// Go through the variables and interpolate the environment variables
-	ctx := c.Context()
-	ctx.EnableEnv = true
-	ctx.UserVariables = nil
-	for k, v := range c.Template.Variables {
-		// Ignore variables that are required
-		if v.Required {
-			continue
+		wg.Wait()
+		if diags.Diagnostics().HasErrors() {
+			break
 		}
-
-		// Ignore variables that have a value
-		if _, ok := c.variables[k]; ok {
-			continue
-		}
-
-		// Interpolate the default
-		def, err := interpolate.Render(v.Default, ctx)
-		if err != nil {
-			return fmt.Errorf(
-				"error interpolating default value for '%s': %s",
-				k, err)
-		}
-
-		c.variables[k] = def
 	}
 
-	for _, v := range c.Template.SensitiveVariables {
-		def, err := interpolate.Render(v.Default, ctx)
-		if err != nil {
-			return fmt.Errorf(
-				"error interpolating default value for '%#v': %s",
-				v, err)
-		}
-		c.secrets = append(c.secrets, def)
+	wr := hcl.NewDiagnosticTextWriter(
+		os.Stdout,      // writer to send messages to
+		c.config.Files, // the parser's file cache, for source snippets
+		78,             // wrapping width
+		true,           // generate colored/highlighted output
+	)
+	err := wr.WriteDiagnostics(diags.Diagnostics())
+	if err != nil {
+		panic("error: " + err.Error()) // TODO(azr): remove me
 	}
-
-	// Interpolate the push configuration
-	if _, err := interpolate.RenderInterface(&c.Template.Push, c.Context()); err != nil {
-		return fmt.Errorf("Error interpolating 'push': %s", err)
-	}
-
-	return nil
 }

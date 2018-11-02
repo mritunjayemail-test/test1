@@ -4,6 +4,7 @@ import (
 	"net/rpc"
 
 	"github.com/hashicorp/packer/packer"
+	"github.com/hashicorp/packer/packer/artifact"
 )
 
 // An implementation of packer.Build where the build is actually executed
@@ -13,10 +14,10 @@ type build struct {
 	mux    *muxBroker
 }
 
-// BuildServer wraps a packer.Build implementation and makes it exportable
+// BuildServer wraps a artifact.Handler implementation and makes it exportable
 // as part of a Golang RPC server.
 type BuildServer struct {
-	build packer.Build
+	build artifact.Handler
 	mux   *muxBroker
 }
 

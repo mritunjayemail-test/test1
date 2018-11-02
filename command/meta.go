@@ -38,10 +38,10 @@ type Meta struct {
 
 // Core returns the core for the given template given the configured
 // CoreConfig and user variables on this Meta.
-func (m *Meta) Core(tpl *template.Template) (*packer.Core, error) {
+func (m *Meta) Core(tpl *template.Root) (*packer.Core, error) {
 	// Copy the config so we don't modify it
 	config := *m.CoreConfig
-	config.Template = tpl
+	config.Root = tpl
 	config.Variables = m.flagVars
 
 	// Init the core

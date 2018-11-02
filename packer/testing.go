@@ -1,12 +1,16 @@
+// +build ignore
+
 package packer
 
 import (
 	"bytes"
 	"io/ioutil"
 	"testing"
+
+	"github.com/hashicorp/packer/packer/config"
 )
 
-func TestCoreConfig(t *testing.T) *CoreConfig {
+func TestCoreConfig(t *testing.T) *config.Root {
 	// Create some test components
 	components := ComponentFinder{
 		Builder: func(n string) (Builder, error) {
@@ -18,7 +22,7 @@ func TestCoreConfig(t *testing.T) *CoreConfig {
 		},
 	}
 
-	return &CoreConfig{
+	return &config.Root{
 		Components: components,
 	}
 }
