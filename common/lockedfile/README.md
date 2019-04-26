@@ -1,0 +1,1 @@
+The code in this directory is based upon https://github.com/golang/go/tree/aac285c2df754f61b49baf2a35bffae0ae5bf95b/src/cmd/go/internal/lockedfile
