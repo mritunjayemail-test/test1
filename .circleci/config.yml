@@ -51,6 +51,7 @@ jobs:
     <<: *golang
     environment:
       GOOS: openbsd
+      CGO_ENABLED: "1"
   store_artifacts:
     <<: *golang
     steps:
