@@ -51,6 +51,7 @@ jobs:
     <<: *golang
     environment:
       GOOS: openbsd
+      # to be able to use github.com/shirou/gopsutil
       CGO_ENABLED: "1"
   store_artifacts:
     <<: *golang
