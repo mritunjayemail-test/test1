@@ -31,54 +31,23 @@ method should do.
 
 ``` go
 type Builder interface {
-  Prepare(...interface{}) error
-  Run(context.Context, ui Ui, hook Hook) (Artifact, error)
+  Configure(interface{}) error
+  Validate() error
+  Build(context.Context, ui Ui, hook Hook) (Artifact, error)
 }
 ```
+<%= partial "configure-validate" %>
 
-### The "Prepare" Method
+### The "Build" Method
 
-The `Prepare` method for each builder is called prior to any runs with the
-configuration that was given in the template. This is passed in as an array of
-`interface{}` types, but is generally `map[string]interface{}`. The prepare
-method is responsible for translating this configuration into an internal
-structure, validating it, and returning any errors.
-
-For multiple parameters, they should be merged together into the final
-configuration, with later parameters overwriting any previous configuration.
-The exact semantics of the merge are left to the builder author.
-
-For decoding the `interface{}` into a meaningful structure, the
-[mapstructure](https://github.com/mitchellh/mapstructure) library is
-recommended. Mapstructure will take an `interface{}` and decode it into an
-arbitrarily complex struct. If there are any errors, it generates very human
-friendly errors that can be returned directly from the prepare method.
-
-While it is not actively enforced, **no side effects** should occur from
-running the `Prepare` method. Specifically, don't create files, don't launch
-virtual machines, etc. Prepare's purpose is solely to configure the builder and
-validate the configuration.
-
-In addition to normal configuration, Packer will inject a
-`map[string]interface{}` with a key of `packer.DebugConfigKey` set to boolean
-`true` if debug mode is enabled for the build. If this is set to true, then the
-builder should enable a debug mode which assists builder developers and
-advanced users to introspect what is going on during a build. During debug
-builds, parallelism is strictly disabled, so it is safe to request input from
-stdin and so on.
-
-### The "Run" Method
-
-`Run` is where all the interesting stuff happens. Run is executed, often in
-parallel for multiple builders, to actually build the machine, provision it,
+`Build` is where all the interesting stuff happens. `Build` is executed, often
+in parallel for multiple builders, to actually build the machine, provision it,
 and create the resulting machine image, which is returned as an implementation
 of the `packer.Artifact` interface.
 
-The `Run` method takes three parameters. These are all very useful. The
+The `Build` method takes three parameters. These are all very useful. The
 `packer.Ui` object is used to send output to the console. `packer.Hook` is used
 to execute hooks, which are covered in more detail in the hook section below.
-And `packer.Cache` is used to store files between multiple Packer runs, and is
-covered in more detail in the cache section below.
 
 Because builder runs are typically a complex set of many steps, the
 [multistep](https://github.com/hashicorp/packer/blob/master/helper/multistep)
@@ -87,14 +56,14 @@ which allows you to separate your logic into multiple distinct "steps" and
 string them together. It fully supports cancellation mid-step and so on. Please
 check it out, it is how the built-in builders are all implemented.
 
-Finally, as a result of `Run`, an implementation of `packer.Artifact` should be
-returned. More details on creating a `packer.Artifact` are covered in the
+Finally, as a result of `Build`, an implementation of `packer.Artifact` should
+be returned. More details on creating a `packer.Artifact` are covered in the
 artifact section below. If something goes wrong during the build, an error can
 be returned, as well. Note that it is perfectly fine to produce no artifact and
 no error, although this is rare.
 
 ### Cancellation
-The `Run` method is often run in parallel.
+The `Build` method is often run in parallel.
 
 #### With the "Cancel" Method	( up until packer 1.3 )
 
@@ -114,7 +83,7 @@ respond to these cancellations and clean up after itself.
 
 ## Creating an Artifact
 
-The `Run` method is expected to return an implementation of the
+The `Build` method is expected to return an implementation of the
 `packer.Artifact` interface. Each builder must create their own implementation.
 The interface has ample documentation to help you get started.
 
