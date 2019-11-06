@@ -8,7 +8,7 @@ import "context"
 // the result of a build, compresses it, and returns a new artifact containing
 // a single file of the prior artifact compressed.
 type PostProcessor interface {
-	Plugin
+	Configurable
 
 	// PostProcess takes a previously created Artifact and produces another
 	// Artifact. If an error occurs, it should return that error. If `keep` is

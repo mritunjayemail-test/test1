@@ -1,7 +1,7 @@
 package packer
 
-type Plugin interface {
-	// Configure is Called for each plugin prior to any runs with the
+type Configurable interface {
+	// Configure is Called for each Configurable prior to any runs with the
 	// configuration that was given in the template. Configuration is passed as
 	// an interface{} type, that can be multiple types.
 	//
@@ -25,20 +25,20 @@ type Plugin interface {
 	// While it is not actively enforced, **no side effects** should occur from
 	// running the Configure method. Specifically, don't create files, don't
 	// launch virtual machines, etc. Configure's purpose is solely to configure
-	// the plugin.
+	// the Configurable.
 	//
 	// The Configure method is called very early in the build process so that
 	// errors may be displayed to the user before anything actually happens.
 	// Configure may return basic validation errors during parse time.
 	Configure(interface{}) error
 
-	// Validate is Called after Configure it allows a plugin to tell wether
+	// Validate is Called after Configure it allows a Configurable to tell wether
 	// something is setup incorrectly. For example error if field A OR field
 	// B MUST be set.
 	//
 	// While it is not actively enforced, **no side effects** should occur from
 	// running the Prepare method. Specifically, don't create files, don't
 	// launch virtual machines, etc. Prepare's purpose is solely to validate
-	// the configuration of the plugin.
+	// the configuration of the Configurable.
 	Validate() error
 }

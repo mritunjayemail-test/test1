@@ -11,7 +11,7 @@ import (
 // A provisioner is responsible for installing and configuring software
 // on a machine prior to building the actual image.
 type Provisioner interface {
-	Plugin
+	Configurable
 
 	// Provision is called to actually provision the machine. A context is
 	// given for cancellation, a UI is given to communicate with the user, and

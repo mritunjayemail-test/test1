@@ -10,7 +10,7 @@ import "context"
 // platform given some configuration.
 //
 type Builder interface {
-	Plugin
+	Configurable
 	// Build is where the actual build should take place. It takes a Build and
 	// a Ui.
 	//
