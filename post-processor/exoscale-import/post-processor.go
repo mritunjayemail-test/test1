@@ -57,6 +57,9 @@ type PostProcessor struct {
 	config Config
 }
 
+func (p *PostProcessor) Validate() error {
+}
+
 func (p *PostProcessor) Configure(raws ...interface{}) error {
 	p.config.TemplateZone = defaultTemplateZone
 	p.config.APIEndpoint = defaultAPIEndpoint

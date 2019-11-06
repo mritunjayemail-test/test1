@@ -16,6 +16,12 @@ type Provisioner struct {
 
 var _ packer.Provisioner = new(Provisioner)
 
+func (p *Provisioner) Configure(data interface{}) error {
+}
+
+func (p *Provisioner) Validate() error {
+}
+
 func (p *Provisioner) Prepare(raws ...interface{}) error {
 	return config.Decode(&p, &config.DecodeOpts{}, raws...)
 }

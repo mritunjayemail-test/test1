@@ -68,6 +68,12 @@ type PausedProvisioner struct {
 	Provisioner Provisioner
 }
 
+func (p *PausedProvisioner) Configure(data interface{}) error {
+}
+
+func (p *PausedProvisioner) Validate() error {
+}
+
 func (p *PausedProvisioner) Prepare(raws ...interface{}) error {
 	return p.Provisioner.Prepare(raws...)
 }
@@ -93,6 +99,12 @@ type DebuggedProvisioner struct {
 	cancelCh chan struct{}
 	doneCh   chan struct{}
 	lock     sync.Mutex
+}
+
+func (p *DebuggedProvisioner) Configure(data interface{}) error {
+}
+
+func (p *DebuggedProvisioner) Validate() error {
 }
 
 func (p *DebuggedProvisioner) Prepare(raws ...interface{}) error {

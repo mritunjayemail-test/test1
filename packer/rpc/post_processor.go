@@ -36,6 +36,9 @@ type PostProcessorProcessResponse struct {
 	StreamId      uint32
 }
 
+func (p *postProcessor) Validate() error {
+}
+
 func (p *postProcessor) Configure(raw ...interface{}) (err error) {
 	args := &PostProcessorConfigureArgs{Configs: raw}
 	if cerr := p.client.Call("PostProcessor.Configure", args, new(interface{})); cerr != nil {

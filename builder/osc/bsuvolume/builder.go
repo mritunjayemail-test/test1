@@ -44,6 +44,12 @@ type EngineVarsTemplate struct {
 	SourceOMI   string
 }
 
+func (b *Builder) Configure(data interface{}) error {
+}
+
+func (b *Builder) Validate() error {
+}
+
 func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	b.config.ctx.Funcs = osccommon.TemplateFuncs
 	// Create passthrough for {{ .BuildRegion }} and {{ .SourceOMI }} variables

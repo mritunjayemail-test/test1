@@ -21,6 +21,12 @@ type Builder struct {
 }
 
 // Prepare implements the packer.Builder interface.
+func (b *Builder) Configure(data interface{}) error {
+}
+
+func (b *Builder) Validate() error {
+}
+
 func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	config, errs := NewConfig(raws...)
 	if errs != nil {

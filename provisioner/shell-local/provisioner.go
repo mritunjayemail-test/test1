@@ -11,6 +11,12 @@ type Provisioner struct {
 	config sl.Config
 }
 
+func (p *Provisioner) Configure(data interface{}) error {
+}
+
+func (p *Provisioner) Validate() error {
+}
+
 func (p *Provisioner) Prepare(raws ...interface{}) error {
 	err := sl.Decode(&p.config, raws...)
 	if err != nil {

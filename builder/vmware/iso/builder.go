@@ -19,6 +19,12 @@ type Builder struct {
 }
 
 // Prepare processes the build configuration parameters.
+func (b *Builder) Configure(data interface{}) error {
+}
+
+func (b *Builder) Validate() error {
+}
+
 func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	c, warnings, errs := NewConfig(raws...)
 	if errs != nil {

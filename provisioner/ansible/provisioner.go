@@ -81,6 +81,12 @@ type PassthroughTemplate struct {
 	WinRMPassword string
 }
 
+func (p *Provisioner) Configure(data interface{}) error {
+}
+
+func (p *Provisioner) Validate() error {
+}
+
 func (p *Provisioner) Prepare(raws ...interface{}) error {
 	p.done = make(chan struct{})
 

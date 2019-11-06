@@ -16,6 +16,9 @@ type ExecuteCommandTemplate struct {
 	Script string
 }
 
+func (p *PostProcessor) Validate() error {
+}
+
 func (p *PostProcessor) Configure(raws ...interface{}) error {
 	err := sl.Decode(&p.config, raws...)
 	if err != nil {

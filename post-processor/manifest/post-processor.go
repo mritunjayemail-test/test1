@@ -36,6 +36,9 @@ type ManifestFile struct {
 	LastRunUUID string     `json:"last_run_uuid"`
 }
 
+func (p *PostProcessor) Validate() error {
+}
+
 func (p *PostProcessor) Configure(raws ...interface{}) error {
 	err := config.Decode(&p.config, &config.DecodeOpts{
 		Interpolate:        true,

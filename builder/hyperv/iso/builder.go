@@ -85,6 +85,12 @@ type Config struct {
 }
 
 // Prepare processes the build configuration parameters.
+func (b *Builder) Configure(data interface{}) error {
+}
+
+func (b *Builder) Validate() error {
+}
+
 func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	err := config.Decode(&b.config, &config.DecodeOpts{
 		Interpolate:        true,

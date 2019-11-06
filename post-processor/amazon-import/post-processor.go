@@ -52,6 +52,9 @@ type PostProcessor struct {
 }
 
 // Entry point for configuration parsing when we've defined
+func (p *PostProcessor) Validate() error {
+}
+
 func (p *PostProcessor) Configure(raws ...interface{}) error {
 	p.config.ctx.Funcs = awscommon.TemplateFuncs
 	err := config.Decode(&p.config, &config.DecodeOpts{

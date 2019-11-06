@@ -41,6 +41,12 @@ const (
 	ALICLOUD_DEFAULT_LONG_TIMEOUT  = 3600
 )
 
+func (b *Builder) Configure(data interface{}) error {
+}
+
+func (b *Builder) Validate() error {
+}
+
 func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	err := config.Decode(&b.config, &config.DecodeOpts{
 		Interpolate:        true,

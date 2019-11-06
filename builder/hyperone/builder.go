@@ -20,6 +20,12 @@ type Builder struct {
 	client *openapi.APIClient
 }
 
+func (b *Builder) Configure(data interface{}) error {
+}
+
+func (b *Builder) Validate() error {
+}
+
 func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	config, warnings, errs := NewConfig(raws...)
 	if errs != nil {

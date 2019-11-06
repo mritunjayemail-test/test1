@@ -21,6 +21,12 @@ type Builder struct {
 	runner multistep.Runner
 }
 
+func (b *Builder) Configure(data interface{}) error {
+}
+
+func (b *Builder) Validate() error {
+}
+
 func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	c, errs := NewConfig(raws...)
 	if errs != nil {

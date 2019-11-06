@@ -58,6 +58,9 @@ type PostProcessor struct {
 }
 
 // Entry point for configuration parsing when we've defined
+func (p *PostProcessor) Validate() error {
+}
+
 func (p *PostProcessor) Configure(raws ...interface{}) error {
 	err := config.Decode(&p.config, &config.DecodeOpts{
 		Interpolate:        true,

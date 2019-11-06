@@ -58,6 +58,9 @@ type PostProcessor struct {
 	configs map[string]*Config
 }
 
+func (p *PostProcessor) Validate() error {
+}
+
 func (p *PostProcessor) Configure(raws ...interface{}) error {
 	p.configs = make(map[string]*Config)
 	p.configs[""] = new(Config)

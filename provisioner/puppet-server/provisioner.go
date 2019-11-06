@@ -144,6 +144,12 @@ type EnvVarsTemplate struct {
 	WinRMPassword string
 }
 
+func (p *Provisioner) Configure(data interface{}) error {
+}
+
+func (p *Provisioner) Validate() error {
+}
+
 func (p *Provisioner) Prepare(raws ...interface{}) error {
 	// Create passthrough for winrm password so we can fill it in once we know
 	// it

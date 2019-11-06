@@ -22,6 +22,12 @@ type Builder struct {
 
 var pluginVersion = "1.0.0"
 
+func (b *Builder) Configure(data interface{}) error {
+}
+
+func (b *Builder) Validate() error {
+}
+
 func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	config, warnings, errs := NewConfig(raws...)
 	if errs != nil {

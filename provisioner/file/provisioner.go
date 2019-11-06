@@ -40,6 +40,12 @@ type Provisioner struct {
 	config Config
 }
 
+func (p *Provisioner) Configure(data interface{}) error {
+}
+
+func (p *Provisioner) Validate() error {
+}
+
 func (p *Provisioner) Prepare(raws ...interface{}) error {
 	err := config.Decode(&p.config, &config.DecodeOpts{
 		Interpolate:        true,
