@@ -8,10 +8,7 @@ import "context"
 // the result of a build, compresses it, and returns a new artifact containing
 // a single file of the prior artifact compressed.
 type PostProcessor interface {
-	// Configure is responsible for setting up configuration, storing
-	// the state for later, and returning and errors, such as validation
-	// errors.
-	Configure(...interface{}) error
+	Plugin
 
 	// PostProcess takes a previously created Artifact and produces another
 	// Artifact. If an error occurs, it should return that error. If `keep` is

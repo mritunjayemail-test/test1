@@ -11,10 +11,7 @@ import (
 // A provisioner is responsible for installing and configuring software
 // on a machine prior to building the actual image.
 type Provisioner interface {
-	// Prepare is called with a set of configurations to setup the
-	// internal state of the provisioner. The multiple configurations
-	// should be merged in some sane way.
-	Prepare(...interface{}) error
+	Plugin
 
 	// Provision is called to actually provision the machine. A context is
 	// given for cancellation, a UI is given to communicate with the user, and
