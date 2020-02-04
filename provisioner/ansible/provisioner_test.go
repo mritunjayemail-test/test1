@@ -383,6 +383,7 @@ func TestCreateInventoryFile_vers1(t *testing.T) {
 	p.Prepare(testConfig(t))
 	defer os.Remove(p.config.Command)
 	p.ansibleMajVersion = 1
+	p.config.User = "testuser"
 
 	err := p.createInventoryFile("123.45.67.8", 2222)
 	if err != nil {
@@ -397,7 +398,7 @@ func TestCreateInventoryFile_vers1(t *testing.T) {
 		t.Fatalf("couldn't read created inventoryfile: %s", err)
 	}
 
-	expected := "123.45.67.8 ansible_ssh_host=default ansible_ssh_user=mmarsh ansible_ssh_port=2222\n"
+	expected := "123.45.67.8 ansible_ssh_host=default ansible_ssh_user=testuser ansible_ssh_port=2222\n"
 	if fmt.Sprintf("%s", f) != expected {
 		t.Fatalf("File didn't match expected:\n\n expected: \n%s\n; recieved: \n%s\n", expected, f)
 	}
@@ -408,6 +409,7 @@ func TestCreateInventoryFile_vers2(t *testing.T) {
 	p.Prepare(testConfig(t))
 	defer os.Remove(p.config.Command)
 	p.ansibleMajVersion = 2
+	p.config.User = "testuser"
 
 	err := p.createInventoryFile("123.45.67.89", 1234)
 	if err != nil {
@@ -421,7 +423,7 @@ func TestCreateInventoryFile_vers2(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't read created inventoryfile: %s", err)
 	}
-	expected := "123.45.67.89 ansible_host=default ansible_user=mmarsh ansible_port=1234\n"
+	expected := "123.45.67.89 ansible_host=default ansible_user=testuser ansible_port=1234\n"
 	if fmt.Sprintf("%s", f) != expected {
 		t.Fatalf("File didn't match expected:\n\n expected: \n%s\n; recieved: \n%s\n", expected, f)
 	}
@@ -432,6 +434,7 @@ func TestCreateInventoryFile_Groups(t *testing.T) {
 	p.Prepare(testConfig(t))
 	defer os.Remove(p.config.Command)
 	p.ansibleMajVersion = 1
+	p.config.User = "testuser"
 	p.config.Groups = []string{"Group1", "Group2"}
 
 	err := p.createInventoryFile("123.45.67.89", 1234)
@@ -446,11 +449,11 @@ func TestCreateInventoryFile_Groups(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't read created inventoryfile: %s", err)
 	}
-	expected := `123.45.67.89 ansible_ssh_host=default ansible_ssh_user=mmarsh ansible_ssh_port=1234
+	expected := `123.45.67.89 ansible_ssh_host=default ansible_ssh_user=testuser ansible_ssh_port=1234
 [Group1]
-123.45.67.89 ansible_ssh_host=default ansible_ssh_user=mmarsh ansible_ssh_port=1234
+123.45.67.89 ansible_ssh_host=default ansible_ssh_user=testuser ansible_ssh_port=1234
 [Group2]
-123.45.67.89 ansible_ssh_host=default ansible_ssh_user=mmarsh ansible_ssh_port=1234
+123.45.67.89 ansible_ssh_host=default ansible_ssh_user=testuser ansible_ssh_port=1234
 `
 	if fmt.Sprintf("%s", f) != expected {
 		t.Fatalf("File didn't match expected:\n\n expected: \n%s\n; recieved: \n%s\n", expected, f)
@@ -462,6 +465,7 @@ func TestCreateInventoryFile_EmptyGroups(t *testing.T) {
 	p.Prepare(testConfig(t))
 	defer os.Remove(p.config.Command)
 	p.ansibleMajVersion = 1
+	p.config.User = "testuser"
 	p.config.EmptyGroups = []string{"Group1", "Group2"}
 
 	err := p.createInventoryFile("123.45.67.89", 1234)
@@ -476,7 +480,7 @@ func TestCreateInventoryFile_EmptyGroups(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't read created inventoryfile: %s", err)
 	}
-	expected := `123.45.67.89 ansible_ssh_host=default ansible_ssh_user=mmarsh ansible_ssh_port=1234
+	expected := `123.45.67.89 ansible_ssh_host=default ansible_ssh_user=testuser ansible_ssh_port=1234
 [Group1]
 [Group2]
 `
@@ -490,6 +494,7 @@ func TestCreateInventoryFile_GroupsAndEmptyGroups(t *testing.T) {
 	p.Prepare(testConfig(t))
 	defer os.Remove(p.config.Command)
 	p.ansibleMajVersion = 1
+	p.config.User = "testuser"
 	p.config.Groups = []string{"Group1", "Group2"}
 	p.config.EmptyGroups = []string{"Group3"}
 
@@ -505,11 +510,11 @@ func TestCreateInventoryFile_GroupsAndEmptyGroups(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't read created inventoryfile: %s", err)
 	}
-	expected := `123.45.67.89 ansible_ssh_host=default ansible_ssh_user=mmarsh ansible_ssh_port=1234
+	expected := `123.45.67.89 ansible_ssh_host=default ansible_ssh_user=testuser ansible_ssh_port=1234
 [Group1]
-123.45.67.89 ansible_ssh_host=default ansible_ssh_user=mmarsh ansible_ssh_port=1234
+123.45.67.89 ansible_ssh_host=default ansible_ssh_user=testuser ansible_ssh_port=1234
 [Group2]
-123.45.67.89 ansible_ssh_host=default ansible_ssh_user=mmarsh ansible_ssh_port=1234
+123.45.67.89 ansible_ssh_host=default ansible_ssh_user=testuser ansible_ssh_port=1234
 [Group3]
 `
 	if fmt.Sprintf("%s", f) != expected {
