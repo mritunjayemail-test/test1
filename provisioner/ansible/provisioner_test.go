@@ -358,6 +358,7 @@ func TestAnsibleLongMessages(t *testing.T) {
 func TestCreateInventoryFile_vers1(t *testing.T) {
 	var p Provisioner
 	p.Prepare(testConfig(t))
+	defer os.Remove(p.config.Command)
 	p.ansibleMajVersion = 1
 
 	err := p.createInventoryFile("123.45.67.8", 2222)
@@ -382,6 +383,7 @@ func TestCreateInventoryFile_vers1(t *testing.T) {
 func TestCreateInventoryFile_vers2(t *testing.T) {
 	var p Provisioner
 	p.Prepare(testConfig(t))
+	defer os.Remove(p.config.Command)
 	p.ansibleMajVersion = 2
 
 	err := p.createInventoryFile("123.45.67.89", 1234)
@@ -405,6 +407,7 @@ func TestCreateInventoryFile_vers2(t *testing.T) {
 func TestCreateInventoryFile_Groups(t *testing.T) {
 	var p Provisioner
 	p.Prepare(testConfig(t))
+	defer os.Remove(p.config.Command)
 	p.ansibleMajVersion = 1
 	p.config.Groups = []string{"Group1", "Group2"}
 
@@ -434,6 +437,7 @@ func TestCreateInventoryFile_Groups(t *testing.T) {
 func TestCreateInventoryFile_EmptyGroups(t *testing.T) {
 	var p Provisioner
 	p.Prepare(testConfig(t))
+	defer os.Remove(p.config.Command)
 	p.ansibleMajVersion = 1
 	p.config.EmptyGroups = []string{"Group1", "Group2"}
 
@@ -461,6 +465,7 @@ func TestCreateInventoryFile_EmptyGroups(t *testing.T) {
 func TestCreateInventoryFile_GroupsAndEmptyGroups(t *testing.T) {
 	var p Provisioner
 	p.Prepare(testConfig(t))
+	defer os.Remove(p.config.Command)
 	p.ansibleMajVersion = 1
 	p.config.Groups = []string{"Group1", "Group2"}
 	p.config.EmptyGroups = []string{"Group3"}
