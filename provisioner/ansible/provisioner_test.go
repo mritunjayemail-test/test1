@@ -14,8 +14,31 @@ import (
 	"strings"
 	"testing"
 
+	confighelper "github.com/hashicorp/packer/helper/config"
 	"github.com/hashicorp/packer/packer"
 )
+
+type provisionLogicTracker struct {
+	setupAdapterCalled   bool
+	executeAnsibleCalled bool
+	happyPath            bool
+}
+
+func (l *provisionLogicTracker) setupAdapter(ui packer.Ui, comm packer.Communicator) (error, string) {
+	l.setupAdapterCalled = true
+	if l.happyPath {
+		return nil, "fakeKeyString"
+	}
+	return fmt.Errorf("chose sadpath"), ""
+}
+
+func (l *provisionLogicTracker) executeAnsible(ui packer.Ui, comm packer.Communicator, privKeyFile string) error {
+	l.executeAnsibleCalled = true
+	if l.happyPath {
+		return fmt.Errorf("Chose sadpath")
+	}
+	return nil
+}
 
 // Be sure to remove the Ansible stub file in each test with:
 //   defer os.Remove(config["command"].(string))
@@ -491,5 +514,78 @@ func TestCreateInventoryFile_GroupsAndEmptyGroups(t *testing.T) {
 `
 	if fmt.Sprintf("%s", f) != expected {
 		t.Fatalf("File didn't match expected:\n\n file is \n\n %s", f)
+	}
+}
+
+func TestUseProxy(t *testing.T) {
+	type testcase struct {
+		UseProxy                   confighelper.Trilean
+		generatedData              map[string]interface{}
+		expectedSetupAdapterCalled bool
+		explanation                string
+	}
+
+	tcs := []testcase{
+		{
+			explanation: "use_proxy is true; we should set up adapter",
+			UseProxy:    confighelper.TriTrue,
+			generatedData: map[string]interface{}{
+				"Host": "123.45.67.8",
+				"Port": int64(1234),
+			},
+			expectedSetupAdapterCalled: true,
+		},
+		{
+			explanation: "use_proxy is false but no IP addr is available; we should set up adapter anyway.",
+			UseProxy:    confighelper.TriFalse,
+			generatedData: map[string]interface{}{
+				"Host": "",
+				"Port": nil,
+			},
+			expectedSetupAdapterCalled: true,
+		},
+		{
+			explanation: "use_proxy is false; we shouldn't set up adapter.",
+			UseProxy:    confighelper.TriFalse,
+			generatedData: map[string]interface{}{
+				"Host": "123.45.67.8",
+				"Port": int64(1234),
+			},
+			expectedSetupAdapterCalled: false,
+		},
+		{
+			explanation: "use_proxy is unset; we should default to setting up the adapter (for now).",
+			UseProxy:    confighelper.TriUnset,
+			generatedData: map[string]interface{}{
+				"Host": "123.45.67.8",
+				"Port": int64(1234),
+			},
+			expectedSetupAdapterCalled: true,
+		},
+	}
+
+	for _, tc := range tcs {
+		var p Provisioner
+		p.Prepare(testConfig(t))
+		p.config.UseProxy = tc.UseProxy
+		defer os.Remove(p.config.Command)
+		p.ansibleMajVersion = 1
+
+		var l provisionLogicTracker
+		l.setupAdapterCalled = false
+		p.setupAdapterFunc = l.setupAdapter
+		p.executeAnsibleFunc = l.executeAnsible
+		ctx := context.TODO()
+		comm := new(packer.MockCommunicator)
+		ui := &packer.BasicUi{
+			Reader: new(bytes.Buffer),
+			Writer: new(bytes.Buffer),
+		}
+		p.Provision(ctx, ui, comm, tc.generatedData)
+
+		if l.setupAdapterCalled != tc.expectedSetupAdapterCalled {
+			t.Fatalf("Should have called set up adapter: %s", tc.explanation)
+		}
+		os.Remove(p.config.Command)
 	}
 }

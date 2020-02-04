@@ -32,6 +32,7 @@ import (
 	"github.com/hashicorp/packer/common"
 	"github.com/hashicorp/packer/common/adapter"
 	"github.com/hashicorp/packer/helper/config"
+	confighelper "github.com/hashicorp/packer/helper/config"
 	"github.com/hashicorp/packer/packer"
 	"github.com/hashicorp/packer/packer/tmp"
 	"github.com/hashicorp/packer/template/interpolate"
@@ -68,7 +69,7 @@ type Config struct {
 	GalaxyForceInstall   bool     `mapstructure:"galaxy_force_install"`
 	RolesPath            string   `mapstructure:"roles_path"`
 	//TODO: change default to false in v1.6.0.
-	UseProxy bool `mapstructure:"use_proxy" default:"true"`
+	UseProxy confighelper.Trilean `mapstructure:"use_proxy"`
 }
 
 type Provisioner struct {
@@ -78,6 +79,9 @@ type Provisioner struct {
 	ansibleVersion    string
 	ansibleMajVersion uint
 	generatedData     map[string]interface{}
+
+	setupAdapterFunc   func(ui packer.Ui, comm packer.Communicator) (error, string)
+	executeAnsibleFunc func(ui packer.Ui, comm packer.Communicator, privKeyFile string) error
 }
 
 func (p *Provisioner) ConfigSpec() hcldec.ObjectSpec { return p.config.FlatMapstructure().HCL2Spec() }
@@ -174,6 +178,16 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 	}
 	if p.config.User == "" {
 		errs = packer.MultiErrorAppend(errs, fmt.Errorf("user: could not determine current user from environment."))
+	}
+
+	// These fields exist so that we can replace the functions for testing
+	// logic inside of the Provision func; in acutal use, these don't ever
+	// need to get set.
+	if p.setupAdapterFunc == nil {
+		p.setupAdapterFunc = p.setupAdapter
+	}
+	if p.executeAnsibleFunc == nil {
+		p.executeAnsibleFunc = p.executeAnsible
 	}
 
 	if errs != nil && len(errs.Errors) > 0 {
@@ -346,16 +360,17 @@ func (p *Provisioner) Provision(ctx context.Context, ui packer.Ui, comm packer.C
 
 	// Set up proxy if there's no host IP to access, regardless of user config.
 	hostIP := generatedData["Host"]
-	if hostIP == "" && !p.config.UseProxy {
+	if hostIP == "" && p.config.UseProxy.False() {
 		ui.Error("Warning: use_proxy is false, but instance does" +
 			" not have an IP address to give to Ansible. Falling back" +
 			" to use localhost proxy.")
-		p.config.UseProxy = true
+		p.config.UseProxy = confighelper.TriTrue
 	}
 
 	privKeyFile := ""
-	if p.config.UseProxy {
-		err, privKeyFile := p.setupAdapter(ui, comm)
+	if !p.config.UseProxy.False() {
+		// We set up the proxy if useProxy is either true or unset.
+		err, privKeyFile := p.setupAdapterFunc(ui, comm)
 		if err != nil {
 			return err
 		}
@@ -372,10 +387,12 @@ func (p *Provisioner) Provision(ctx context.Context, ui packer.Ui, comm packer.C
 		if len(privKeyFile) > 0 {
 			defer os.Remove(privKeyFile)
 		}
+	} else {
+		ui.Message("Not using Proxy adapter for Ansible run...")
 	}
 
 	if len(p.config.InventoryFile) == 0 {
-		if p.config.UseProxy {
+		if !p.config.UseProxy.False() {
 			err := p.createInventoryFile("127.0.0.1", p.config.LocalPort)
 			if err != nil {
 				return err
@@ -393,7 +410,7 @@ func (p *Provisioner) Provision(ctx context.Context, ui packer.Ui, comm packer.C
 		defer os.Remove(p.config.InventoryFile)
 	}
 
-	if err := p.executeAnsible(ui, comm, privKeyFile); err != nil {
+	if err := p.executeAnsibleFunc(ui, comm, privKeyFile); err != nil {
 		return fmt.Errorf("Error executing Ansible: %s", err)
 	}
 
