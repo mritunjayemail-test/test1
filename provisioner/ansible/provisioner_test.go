@@ -354,3 +354,137 @@ func TestAnsibleLongMessages(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 }
+
+func TestCreateInventoryFile_vers1(t *testing.T) {
+	var p Provisioner
+	p.Prepare(testConfig(t))
+	p.ansibleMajVersion = 1
+
+	err := p.createInventoryFile("123.45.67.8", 2222)
+	if err != nil {
+		t.Fatalf("error creating config using localhost and local port proxy")
+	}
+	if p.config.InventoryFile == "" {
+		t.Fatalf("No inventory file was created")
+	}
+	defer os.Remove(p.config.InventoryFile)
+	f, err := ioutil.ReadFile(p.config.InventoryFile)
+	if err != nil {
+		t.Fatalf("couldn't read created inventoryfile: %s", err)
+	}
+
+	expected := "123.45.67.8 ansible_ssh_host=default ansible_ssh_user=mmarsh ansible_ssh_port=2222\n"
+	if fmt.Sprintf("%s", f) != expected {
+		t.Fatalf("File didn't match expected:\n\n expected: \n%s\n; recieved: \n%s\n", expected, f)
+	}
+}
+
+func TestCreateInventoryFile_vers2(t *testing.T) {
+	var p Provisioner
+	p.Prepare(testConfig(t))
+	p.ansibleMajVersion = 2
+
+	err := p.createInventoryFile("123.45.67.89", 1234)
+	if err != nil {
+		t.Fatalf("error creating config using localhost and local port proxy")
+	}
+	if p.config.InventoryFile == "" {
+		t.Fatalf("No inventory file was created")
+	}
+	defer os.Remove(p.config.InventoryFile)
+	f, err := ioutil.ReadFile(p.config.InventoryFile)
+	if err != nil {
+		t.Fatalf("couldn't read created inventoryfile: %s", err)
+	}
+	expected := "123.45.67.89 ansible_host=default ansible_user=mmarsh ansible_port=1234\n"
+	if fmt.Sprintf("%s", f) != expected {
+		t.Fatalf("File didn't match expected:\n\n expected: \n%s\n; recieved: \n%s\n", expected, f)
+	}
+}
+
+func TestCreateInventoryFile_Groups(t *testing.T) {
+	var p Provisioner
+	p.Prepare(testConfig(t))
+	p.ansibleMajVersion = 1
+	p.config.Groups = []string{"Group1", "Group2"}
+
+	err := p.createInventoryFile("123.45.67.89", 1234)
+	if err != nil {
+		t.Fatalf("error creating config using localhost and local port proxy")
+	}
+	if p.config.InventoryFile == "" {
+		t.Fatalf("No inventory file was created")
+	}
+	defer os.Remove(p.config.InventoryFile)
+	f, err := ioutil.ReadFile(p.config.InventoryFile)
+	if err != nil {
+		t.Fatalf("couldn't read created inventoryfile: %s", err)
+	}
+	expected := `123.45.67.89 ansible_ssh_host=default ansible_ssh_user=mmarsh ansible_ssh_port=1234
+[Group1]
+123.45.67.89 ansible_ssh_host=default ansible_ssh_user=mmarsh ansible_ssh_port=1234
+[Group2]
+123.45.67.89 ansible_ssh_host=default ansible_ssh_user=mmarsh ansible_ssh_port=1234
+`
+	if fmt.Sprintf("%s", f) != expected {
+		t.Fatalf("File didn't match expected:\n\n expected: \n%s\n; recieved: \n%s\n", expected, f)
+	}
+}
+
+func TestCreateInventoryFile_EmptyGroups(t *testing.T) {
+	var p Provisioner
+	p.Prepare(testConfig(t))
+	p.ansibleMajVersion = 1
+	p.config.EmptyGroups = []string{"Group1", "Group2"}
+
+	err := p.createInventoryFile("123.45.67.89", 1234)
+	if err != nil {
+		t.Fatalf("error creating config using localhost and local port proxy")
+	}
+	if p.config.InventoryFile == "" {
+		t.Fatalf("No inventory file was created")
+	}
+	defer os.Remove(p.config.InventoryFile)
+	f, err := ioutil.ReadFile(p.config.InventoryFile)
+	if err != nil {
+		t.Fatalf("couldn't read created inventoryfile: %s", err)
+	}
+	expected := `123.45.67.89 ansible_ssh_host=default ansible_ssh_user=mmarsh ansible_ssh_port=1234
+[Group1]
+[Group2]
+`
+	if fmt.Sprintf("%s", f) != expected {
+		t.Fatalf("File didn't match expected:\n\n expected: \n%s\n; recieved: \n%s\n", expected, f)
+	}
+}
+
+func TestCreateInventoryFile_GroupsAndEmptyGroups(t *testing.T) {
+	var p Provisioner
+	p.Prepare(testConfig(t))
+	p.ansibleMajVersion = 1
+	p.config.Groups = []string{"Group1", "Group2"}
+	p.config.EmptyGroups = []string{"Group3"}
+
+	err := p.createInventoryFile("123.45.67.89", 1234)
+	if err != nil {
+		t.Fatalf("error creating config using localhost and local port proxy")
+	}
+	if p.config.InventoryFile == "" {
+		t.Fatalf("No inventory file was created")
+	}
+	defer os.Remove(p.config.InventoryFile)
+	f, err := ioutil.ReadFile(p.config.InventoryFile)
+	if err != nil {
+		t.Fatalf("couldn't read created inventoryfile: %s", err)
+	}
+	expected := `123.45.67.89 ansible_ssh_host=default ansible_ssh_user=mmarsh ansible_ssh_port=1234
+[Group1]
+123.45.67.89 ansible_ssh_host=default ansible_ssh_user=mmarsh ansible_ssh_port=1234
+[Group2]
+123.45.67.89 ansible_ssh_host=default ansible_ssh_user=mmarsh ansible_ssh_port=1234
+[Group3]
+`
+	if fmt.Sprintf("%s", f) != expected {
+		t.Fatalf("File didn't match expected:\n\n file is \n\n %s", f)
+	}
+}

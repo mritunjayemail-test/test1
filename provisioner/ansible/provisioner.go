@@ -289,12 +289,11 @@ func (p *Provisioner) setupAdapter(ui packer.Ui, comm packer.Communicator) (erro
 	return nil, k.privKeyFile
 }
 
-func (p *Provisioner) createInventoryFile(hostIP string, hostPort string) error {
+func (p *Provisioner) createInventoryFile(hostIP string, hostPort int) error {
 	tf, err := ioutil.TempFile(p.config.InventoryDirectory, "packer-provisioner-ansible")
 	if err != nil {
 		return fmt.Errorf("Error preparing inventory file: %s", err)
 	}
-	defer os.Remove(tf.Name())
 
 	host := fmt.Sprintf("%s ansible_host=%s ansible_user=%s ansible_port=%d\n",
 		hostIP, p.config.HostAlias, p.config.User, hostPort)
@@ -315,6 +314,7 @@ func (p *Provisioner) createInventoryFile(hostIP string, hostPort string) error 
 
 	if err := w.Flush(); err != nil {
 		tf.Close()
+		os.Remove(tf.Name())
 		return fmt.Errorf("Error preparing inventory file: %s", err)
 	}
 	tf.Close()
@@ -376,13 +376,13 @@ func (p *Provisioner) Provision(ctx context.Context, ui packer.Ui, comm packer.C
 
 	if len(p.config.InventoryFile) == 0 {
 		if p.config.UseProxy {
-			err := p.createInventoryFile("127.0.0.1", string(p.config.LocalPort))
+			err := p.createInventoryFile("127.0.0.1", p.config.LocalPort)
 			if err != nil {
 				return err
 			}
 		} else {
 			err := p.createInventoryFile(generatedData["Host"].(string),
-				string(generatedData["Port"].(int64)))
+				int(generatedData["Port"].(int64)))
 			if err != nil {
 				return err
 			}
@@ -390,6 +390,7 @@ func (p *Provisioner) Provision(ctx context.Context, ui packer.Ui, comm packer.C
 		defer func() {
 			p.config.InventoryFile = ""
 		}()
+		defer os.Remove(p.config.InventoryFile)
 	}
 
 	if err := p.executeAnsible(ui, comm, privKeyFile); err != nil {
