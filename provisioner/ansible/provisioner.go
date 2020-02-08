@@ -68,7 +68,8 @@ type Config struct {
 	GalaxyForceInstall   bool     `mapstructure:"galaxy_force_install"`
 	RolesPath            string   `mapstructure:"roles_path"`
 	//TODO: change default to false in v1.6.0.
-	UseProxy config.Trilean `mapstructure:"use_proxy"`
+	UseProxy     config.Trilean `mapstructure:"use_proxy"`
+	userWasEmpty bool
 }
 
 type Provisioner struct {
@@ -168,6 +169,7 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 	}
 
 	if p.config.User == "" {
+		p.config.userWasEmpty = true
 		usr, err := user.Current()
 		if err != nil {
 			errs = packer.MultiErrorAppend(errs, err)
@@ -371,29 +373,62 @@ func (p *Provisioner) Provision(ctx context.Context, ui packer.Ui, comm packer.C
 	privKeyFile := ""
 	if !p.config.UseProxy.False() {
 		// We set up the proxy if useProxy is either true or unset.
-		privKeyFile, err := p.setupAdapterFunc(ui, comm)
+		pkf, err := p.setupAdapterFunc(ui, comm)
 		if err != nil {
 			return err
 		}
+		// This is necessary to avoid accidentally redeclaring
+		// privKeyFile in the scope of this if statement.
+		privKeyFile = pkf
 
-		go p.adapter.Serve()
 		defer func() {
 			log.Print("shutting down the SSH proxy")
 			close(p.done)
 			p.adapter.Shutdown()
 		}()
 
+		go p.adapter.Serve()
+
 		// Remove the private key file
 		if len(privKeyFile) > 0 {
 			defer os.Remove(privKeyFile)
 		}
 	} else {
-		ui.Message("Not using Proxy adapter for Ansible run...")
+		ui.Message("Not using Proxy adapter for Ansible run:\n" +
+			"\tUsing ssh keys from Packer communicator...")
+		// In this situation, we need to make sure we have the
+		// private key we actually use to access the instance.
+		SSHPrivateKeyFile := generatedData["SSHPrivateKeyFile"].(string)
+		if SSHPrivateKeyFile != "" {
+			privKeyFile = SSHPrivateKeyFile
+		} else {
+			// See if we can get a private key and write that to a tmpfile
+			SSHPrivateKey := generatedData["SSHPrivateKey"].([]byte)
+			tmpSSHPrivateKey, err := tmp.File("ansible-key")
+			if err != nil {
+				return fmt.Errorf("Error writing private key to temp file for"+
+					"ansible connection", err)
+			}
+			_, err = tmpSSHPrivateKey.Write(SSHPrivateKey)
+			if err != nil {
+				return errors.New("failed to write private key to temp file")
+			}
+			err = tmpSSHPrivateKey.Close()
+			if err != nil {
+				return errors.New("failed to close private key temp file")
+			}
+			privKeyFile = tmpSSHPrivateKey.Name()
+		}
+
+		// Also make sure that the username matches the SSH keys given.
+		if p.config.userWasEmpty {
+			p.config.User = generatedData["User"].(string)
+		}
 	}
 
-	hostIP = "127.0.0.1"
-	hostPort := p.config.LocalPort
 	if len(p.config.InventoryFile) == 0 {
+		hostIP = "127.0.0.1"
+		hostPort := p.config.LocalPort
 		if p.config.UseProxy.False() {
 			// We aren't using a proxy, so we need to retrieve the
 			// host IP and port from generated data.
