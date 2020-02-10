@@ -407,7 +407,7 @@ func (p *Provisioner) Provision(ctx context.Context, ui packer.Ui, comm packer.C
 			tmpSSHPrivateKey, err := tmp.File("ansible-key")
 			if err != nil {
 				return fmt.Errorf("Error writing private key to temp file for"+
-					"ansible connection", err)
+					"ansible connection: %v", err)
 			}
 			_, err = tmpSSHPrivateKey.Write(SSHPrivateKey)
 			if err != nil {
