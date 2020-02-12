@@ -40,8 +40,8 @@ type FlatConfig struct {
 	SnapshotTags                common.TagMap                          `mapstructure:"snapshot_tags" cty:"snapshot_tags"`
 	SnapshotAccountIDs          []string                               `mapstructure:"snapshot_account_ids" cty:"snapshot_account_ids"`
 	SnapshotGroups              []string                               `mapstructure:"snapshot_groups" cty:"snapshot_groups"`
-	OMIMappings                 []common.FlatBlockDevice               `mapstructure:"omi_block_device_mappings" cty:"omi_block_device_mappings"`
-	LaunchMappings              []common.FlatBlockDevice               `mapstructure:"launch_block_device_mappings" cty:"launch_block_device_mappings"`
+	OMIMappings                 []common.FlatBlockDevice               `mapstructure:"omi_block_device_mappings" mapstructure-to-hcl2:"omi_block_device_mapping" cty:"omi_block_device_mapping"`
+	LaunchMappings              []common.FlatBlockDevice               `mapstructure:"launch_block_device_mappings" mapstructure-to-hcl2:"launch_block_device_mapping" cty:"launch_block_device_mapping"`
 	AssociatePublicIpAddress    *bool                                  `mapstructure:"associate_public_ip_address" cty:"associate_public_ip_address"`
 	Subregion                   *string                                `mapstructure:"subregion_name" cty:"subregion_name"`
 	BlockDurationMinutes        *int64                                 `mapstructure:"block_duration_minutes" cty:"block_duration_minutes"`
@@ -154,8 +154,8 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"snapshot_tags":                        &hcldec.BlockAttrsSpec{TypeName: "snapshot_tags", ElementType: cty.String, Required: false},
 		"snapshot_account_ids":                 &hcldec.AttrSpec{Name: "snapshot_account_ids", Type: cty.List(cty.String), Required: false},
 		"snapshot_groups":                      &hcldec.AttrSpec{Name: "snapshot_groups", Type: cty.List(cty.String), Required: false},
-		"omi_block_device_mappings":            &hcldec.BlockListSpec{TypeName: "omi_block_device_mappings", Nested: hcldec.ObjectSpec((*common.FlatBlockDevice)(nil).HCL2Spec())},
-		"launch_block_device_mappings":         &hcldec.BlockListSpec{TypeName: "launch_block_device_mappings", Nested: hcldec.ObjectSpec((*common.FlatBlockDevice)(nil).HCL2Spec())},
+		"omi_block_device_mapping":             &hcldec.BlockListSpec{TypeName: "omi_block_device_mapping", Nested: hcldec.ObjectSpec((*common.FlatBlockDevice)(nil).HCL2Spec())},
+		"launch_block_device_mapping":          &hcldec.BlockListSpec{TypeName: "launch_block_device_mapping", Nested: hcldec.ObjectSpec((*common.FlatBlockDevice)(nil).HCL2Spec())},
 		"associate_public_ip_address":          &hcldec.AttrSpec{Name: "associate_public_ip_address", Type: cty.Bool, Required: false},
 		"subregion_name":                       &hcldec.AttrSpec{Name: "subregion_name", Type: cty.String, Required: false},
 		"block_duration_minutes":               &hcldec.AttrSpec{Name: "block_duration_minutes", Type: cty.Number, Required: false},

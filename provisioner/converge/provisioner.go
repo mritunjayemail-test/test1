@@ -33,7 +33,7 @@ type Config struct {
 	PreventBootstrapSudo bool   `mapstructure:"prevent_bootstrap_sudo"`
 
 	// Modules
-	ModuleDirs []ModuleDir `mapstructure:"module_dirs"`
+	ModuleDirs []ModuleDir `mapstructure:"module_dirs" mapstructure-to-hcl2:"module_dir"`
 
 	// Execution
 	Module           string            `mapstructure:"module"`

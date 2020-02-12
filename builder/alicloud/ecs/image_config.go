@@ -131,7 +131,7 @@ type AlicloudDiskDevices struct {
 	//     it was in the source image. Please refer to Introduction of [ECS disk encryption](https://www.alibabacloud.com/help/doc-detail/59643.htm)
 	//     for more details.
 	//
-	ECSImagesDiskMappings []AlicloudDiskDevice `mapstructure:"image_disk_mappings" required:"false"`
+	ECSImagesDiskMappings []AlicloudDiskDevice `mapstructure:"image_disk_mappings" mapstructure-to-hcl2:"image_disk_mapping" required:"false"`
 }
 
 type AlicloudImageConfig struct {

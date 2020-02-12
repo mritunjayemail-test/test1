@@ -83,8 +83,8 @@ type FlatConfig struct {
 	CPUType                   *string           `mapstructure:"cpu_type" cty:"cpu_type"`
 	Sockets                   *int              `mapstructure:"sockets" cty:"sockets"`
 	OS                        *string           `mapstructure:"os" cty:"os"`
-	NICs                      []FlatnicConfig   `mapstructure:"network_adapters" cty:"network_adapters"`
-	Disks                     []FlatdiskConfig  `mapstructure:"disks" cty:"disks"`
+	NICs                      []FlatnicConfig   `mapstructure:"network_adapters" mapstructure-to-hcl2:"network_adapters" cty:"network_adapters"`
+	Disks                     []FlatdiskConfig  `mapstructure:"disks" mapstructure-to-hcl2:"disk" cty:"disk"`
 	ISOFile                   *string           `mapstructure:"iso_file" cty:"iso_file"`
 	ISOStoragePool            *string           `mapstructure:"iso_storage_pool" cty:"iso_storage_pool"`
 	Agent                     *bool             `mapstructure:"qemu_agent" cty:"qemu_agent"`
@@ -181,7 +181,7 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"sockets":                      &hcldec.AttrSpec{Name: "sockets", Type: cty.Number, Required: false},
 		"os":                           &hcldec.AttrSpec{Name: "os", Type: cty.String, Required: false},
 		"network_adapters":             &hcldec.BlockListSpec{TypeName: "network_adapters", Nested: hcldec.ObjectSpec((*FlatnicConfig)(nil).HCL2Spec())},
-		"disks":                        &hcldec.BlockListSpec{TypeName: "disks", Nested: hcldec.ObjectSpec((*FlatdiskConfig)(nil).HCL2Spec())},
+		"disk":                         &hcldec.BlockListSpec{TypeName: "disk", Nested: hcldec.ObjectSpec((*FlatdiskConfig)(nil).HCL2Spec())},
 		"iso_file":                     &hcldec.AttrSpec{Name: "iso_file", Type: cty.String, Required: false},
 		"iso_storage_pool":             &hcldec.AttrSpec{Name: "iso_storage_pool", Type: cty.String, Required: false},
 		"qemu_agent":                   &hcldec.AttrSpec{Name: "qemu_agent", Type: cty.Bool, Required: false},

@@ -94,8 +94,8 @@ type FlatConfig struct {
 	WinRMInsecure               *bool                                  `mapstructure:"winrm_insecure" cty:"winrm_insecure"`
 	WinRMUseNTLM                *bool                                  `mapstructure:"winrm_use_ntlm" cty:"winrm_use_ntlm"`
 	SSHInterface                *string                                `mapstructure:"ssh_interface" cty:"ssh_interface"`
-	OMIMappings                 []common.FlatBlockDevice               `mapstructure:"omi_block_device_mappings" cty:"omi_block_device_mappings"`
-	LaunchMappings              []common.FlatBlockDevice               `mapstructure:"launch_block_device_mappings" cty:"launch_block_device_mappings"`
+	OMIMappings                 []common.FlatBlockDevice               `mapstructure:"omi_block_device_mappings" mapstructure-to-hcl2:"omi_block_device_mapping" cty:"omi_block_device_mapping"`
+	LaunchMappings              []common.FlatBlockDevice               `mapstructure:"launch_block_device_mappings" mapstructure-to-hcl2:"launch_block_device_mapping" cty:"launch_block_device_mapping"`
 	OMIName                     *string                                `mapstructure:"omi_name" cty:"omi_name"`
 	OMIDescription              *string                                `mapstructure:"omi_description" cty:"omi_description"`
 	OMIVirtType                 *string                                `mapstructure:"omi_virtualization_type" cty:"omi_virtualization_type"`
@@ -209,8 +209,8 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"winrm_insecure":                       &hcldec.AttrSpec{Name: "winrm_insecure", Type: cty.Bool, Required: false},
 		"winrm_use_ntlm":                       &hcldec.AttrSpec{Name: "winrm_use_ntlm", Type: cty.Bool, Required: false},
 		"ssh_interface":                        &hcldec.AttrSpec{Name: "ssh_interface", Type: cty.String, Required: false},
-		"omi_block_device_mappings":            &hcldec.BlockListSpec{TypeName: "omi_block_device_mappings", Nested: hcldec.ObjectSpec((*common.FlatBlockDevice)(nil).HCL2Spec())},
-		"launch_block_device_mappings":         &hcldec.BlockListSpec{TypeName: "launch_block_device_mappings", Nested: hcldec.ObjectSpec((*common.FlatBlockDevice)(nil).HCL2Spec())},
+		"omi_block_device_mapping":             &hcldec.BlockListSpec{TypeName: "omi_block_device_mapping", Nested: hcldec.ObjectSpec((*common.FlatBlockDevice)(nil).HCL2Spec())},
+		"launch_block_device_mapping":          &hcldec.BlockListSpec{TypeName: "launch_block_device_mapping", Nested: hcldec.ObjectSpec((*common.FlatBlockDevice)(nil).HCL2Spec())},
 		"omi_name":                             &hcldec.AttrSpec{Name: "omi_name", Type: cty.String, Required: false},
 		"omi_description":                      &hcldec.AttrSpec{Name: "omi_description", Type: cty.String, Required: false},
 		"omi_virtualization_type":              &hcldec.AttrSpec{Name: "omi_virtualization_type", Type: cty.String, Required: false},

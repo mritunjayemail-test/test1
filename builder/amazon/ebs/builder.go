@@ -11,6 +11,7 @@ package ebs
 import (
 	"context"
 	"fmt"
+
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/hashicorp/hcl/v2/hcldec"
@@ -37,7 +38,7 @@ type Config struct {
 	// the Packer build see `launch_block_device_mappings` below. Your options
 	// here may vary depending on the type of VM you use. See the
 	// [BlockDevices](#block-devices-configuration) documentation for fields.
-	AMIMappings awscommon.BlockDevices `mapstructure:"ami_block_device_mappings" required:"false"`
+	AMIMappings awscommon.BlockDevices `mapstructure:"ami_block_device_mappings" mapstructure-to-hcl2:"ami_block_device_mapping" required:"false"`
 	// Add one or more block devices before the Packer build starts. If you add
 	// instance store volumes or EBS volumes in addition to the root device
 	// volume, the created AMI will contain block device mapping information
@@ -47,7 +48,7 @@ type Config struct {
 	// these additional volumes, and will restore them from snapshots taken
 	// from the source instance. See the
 	// [BlockDevices](#block-devices-configuration) documentation for fields.
-	LaunchMappings awscommon.BlockDevices `mapstructure:"launch_block_device_mappings" required:"false"`
+	LaunchMappings awscommon.BlockDevices `mapstructure:"launch_block_device_mappings" mapstructure-to-hcl2:"launch_block_device_mapping" required:"false"`
 	// Tags to apply to the volumes that are *launched* to create the AMI.
 	// These tags are *not* applied to the resulting AMI unless they're
 	// duplicated in `tags`. This is a [template

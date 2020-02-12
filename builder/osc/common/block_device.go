@@ -28,11 +28,11 @@ type BlockDevices struct {
 }
 
 type OMIBlockDevices struct {
-	OMIMappings []BlockDevice `mapstructure:"omi_block_device_mappings"`
+	OMIMappings []BlockDevice `mapstructure:"omi_block_device_mappings" mapstructure-to-hcl2:"omi_block_device_mapping"`
 }
 
 type LaunchBlockDevices struct {
-	LaunchMappings []BlockDevice `mapstructure:"launch_block_device_mappings"`
+	LaunchMappings []BlockDevice `mapstructure:"launch_block_device_mappings" mapstructure-to-hcl2:"launch_block_device_mapping"`
 }
 
 func buildBlockDevicesImage(b []BlockDevice) []oapi.BlockDeviceMappingImage {

@@ -44,8 +44,8 @@ type Config struct {
 	CPUType        string       `mapstructure:"cpu_type"`
 	Sockets        int          `mapstructure:"sockets"`
 	OS             string       `mapstructure:"os"`
-	NICs           []nicConfig  `mapstructure:"network_adapters"`
-	Disks          []diskConfig `mapstructure:"disks"`
+	NICs           []nicConfig  `mapstructure:"network_adapters" mapstructure-to-hcl2:"network_adapters"`
+	Disks          []diskConfig `mapstructure:"disks" mapstructure-to-hcl2:"disk"`
 	ISOFile        string       `mapstructure:"iso_file"`
 	ISOStoragePool string       `mapstructure:"iso_storage_pool"`
 	Agent          bool         `mapstructure:"qemu_agent"`

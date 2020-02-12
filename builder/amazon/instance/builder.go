@@ -9,9 +9,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/hashicorp/packer/builder"
 	"os"
 	"strings"
+
+	"github.com/hashicorp/packer/builder"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/iam"
@@ -41,7 +42,7 @@ type Config struct {
 	// the Packer build see `launch_block_device_mappings` below. Your options
 	// here may vary depending on the type of VM you use. See the
 	// [BlockDevices](#block-devices-configuration) documentation for fields.
-	AMIMappings awscommon.BlockDevices `mapstructure:"ami_block_device_mappings" required:"false"`
+	AMIMappings awscommon.BlockDevices `mapstructure:"ami_block_device_mappings" mapstructure-to-hcl2:"ami_block_device_mapping" required:"false"`
 	// Add one or more block devices before the Packer build starts. If you add
 	// instance store volumes or EBS volumes in addition to the root device
 	// volume, the created AMI will contain block device mapping information
@@ -51,7 +52,7 @@ type Config struct {
 	// these additional volumes, and will restore them from snapshots taken
 	// from the source instance. See the
 	// [BlockDevices](#block-devices-configuration) documentation for fields.
-	LaunchMappings awscommon.BlockDevices `mapstructure:"launch_block_device_mappings" required:"false"`
+	LaunchMappings awscommon.BlockDevices `mapstructure:"launch_block_device_mappings" mapstructure-to-hcl2:"launch_block_device_mapping" required:"false"`
 	// Your AWS account ID. This is required for bundling the AMI. This is not
 	// the same as the access key. You can find your account ID in the security
 	// credentials page of your AWS account.

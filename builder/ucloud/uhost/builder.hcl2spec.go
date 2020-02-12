@@ -24,7 +24,7 @@ type FlatConfig struct {
 	BaseUrl                   *string                       `mapstructure:"base_url" cty:"base_url"`
 	ImageName                 *string                       `mapstructure:"image_name" cty:"image_name"`
 	ImageDescription          *string                       `mapstructure:"image_description" cty:"image_description"`
-	ImageDestinations         []common.FlatImageDestination `mapstructure:"image_copy_to_mappings" cty:"image_copy_to_mappings"`
+	ImageDestinations         []common.FlatImageDestination `mapstructure:"image_copy_to_mappings" mapstructure-to-hcl2:"image_copy_to_mapping" cty:"image_copy_to_mapping"`
 	WaitImageReadyTimeout     *int                          `mapstructure:"wait_image_ready_timeout" cty:"wait_image_ready_timeout"`
 	Zone                      *string                       `mapstructure:"availability_zone" cty:"availability_zone"`
 	SourceImageId             *string                       `mapstructure:"source_image_id" cty:"source_image_id"`
@@ -103,7 +103,7 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"base_url":                     &hcldec.AttrSpec{Name: "base_url", Type: cty.String, Required: false},
 		"image_name":                   &hcldec.AttrSpec{Name: "image_name", Type: cty.String, Required: false},
 		"image_description":            &hcldec.AttrSpec{Name: "image_description", Type: cty.String, Required: false},
-		"image_copy_to_mappings":       &hcldec.BlockListSpec{TypeName: "image_copy_to_mappings", Nested: hcldec.ObjectSpec((*common.FlatImageDestination)(nil).HCL2Spec())},
+		"image_copy_to_mapping":        &hcldec.BlockListSpec{TypeName: "image_copy_to_mapping", Nested: hcldec.ObjectSpec((*common.FlatImageDestination)(nil).HCL2Spec())},
 		"wait_image_ready_timeout":     &hcldec.AttrSpec{Name: "wait_image_ready_timeout", Type: cty.Number, Required: false},
 		"availability_zone":            &hcldec.AttrSpec{Name: "availability_zone", Type: cty.String, Required: false},
 		"source_image_id":              &hcldec.AttrSpec{Name: "source_image_id", Type: cty.String, Required: false},

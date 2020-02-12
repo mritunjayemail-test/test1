@@ -10,11 +10,11 @@ package chroot
 import (
 	"context"
 	"errors"
-	"github.com/hashicorp/packer/builder"
 	"runtime"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/hcl/v2/hcldec"
+	"github.com/hashicorp/packer/builder"
 	awscommon "github.com/hashicorp/packer/builder/amazon/common"
 	"github.com/hashicorp/packer/common"
 	"github.com/hashicorp/packer/common/chroot"
@@ -41,7 +41,7 @@ type Config struct {
 	// entry for your root volume, `root_volume_size` and `root_device_name`.
 	// See the [BlockDevices](#block-devices-configuration) documentation for
 	// fields.
-	AMIMappings awscommon.BlockDevices `mapstructure:"ami_block_device_mappings" hcl2-schema-generator:"ami_block_device_mappings,direct" required:"false"`
+	AMIMappings awscommon.BlockDevices `mapstructure:"ami_block_device_mappings" mapstructure-to-hcl2:"ami_block_device_mapping" required:"false"`
 	// This is a list of devices to mount into the chroot environment. This
 	// configuration parameter requires some additional documentation which is
 	// in the Chroot Mounts section. Please read that section for more

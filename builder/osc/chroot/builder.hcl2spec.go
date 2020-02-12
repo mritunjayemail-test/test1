@@ -17,7 +17,7 @@ type FlatConfig struct {
 	PackerOnError           *string                      `mapstructure:"packer_on_error" cty:"packer_on_error"`
 	PackerUserVars          map[string]string            `mapstructure:"packer_user_variables" cty:"packer_user_variables"`
 	PackerSensitiveVars     []string                     `mapstructure:"packer_sensitive_variables" cty:"packer_sensitive_variables"`
-	OMIMappings             []common.FlatBlockDevice     `mapstructure:"omi_block_device_mappings" cty:"omi_block_device_mappings"`
+	OMIMappings             []common.FlatBlockDevice     `mapstructure:"omi_block_device_mappings" mapstructure-to-hcl2:"omi_block_device_mapping" cty:"omi_block_device_mapping"`
 	OMIName                 *string                      `mapstructure:"omi_name" cty:"omi_name"`
 	OMIDescription          *string                      `mapstructure:"omi_description" cty:"omi_description"`
 	OMIVirtType             *string                      `mapstructure:"omi_virtualization_type" cty:"omi_virtualization_type"`
@@ -79,7 +79,7 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"packer_on_error":            &hcldec.AttrSpec{Name: "packer_on_error", Type: cty.String, Required: false},
 		"packer_user_variables":      &hcldec.BlockAttrsSpec{TypeName: "packer_user_variables", ElementType: cty.String, Required: false},
 		"packer_sensitive_variables": &hcldec.AttrSpec{Name: "packer_sensitive_variables", Type: cty.List(cty.String), Required: false},
-		"omi_block_device_mappings":  &hcldec.BlockListSpec{TypeName: "omi_block_device_mappings", Nested: hcldec.ObjectSpec((*common.FlatBlockDevice)(nil).HCL2Spec())},
+		"omi_block_device_mapping":   &hcldec.BlockListSpec{TypeName: "omi_block_device_mapping", Nested: hcldec.ObjectSpec((*common.FlatBlockDevice)(nil).HCL2Spec())},
 		"omi_name":                   &hcldec.AttrSpec{Name: "omi_name", Type: cty.String, Required: false},
 		"omi_description":            &hcldec.AttrSpec{Name: "omi_description", Type: cty.String, Required: false},
 		"omi_virtualization_type":    &hcldec.AttrSpec{Name: "omi_virtualization_type", Type: cty.String, Required: false},

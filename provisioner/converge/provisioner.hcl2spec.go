@@ -20,7 +20,7 @@ type FlatConfig struct {
 	Version              *string           `mapstructure:"version" cty:"version"`
 	BootstrapCommand     *string           `mapstructure:"bootstrap_command" cty:"bootstrap_command"`
 	PreventBootstrapSudo *bool             `mapstructure:"prevent_bootstrap_sudo" cty:"prevent_bootstrap_sudo"`
-	ModuleDirs           []FlatModuleDir   `mapstructure:"module_dirs" cty:"module_dirs"`
+	ModuleDirs           []FlatModuleDir   `mapstructure:"module_dirs" mapstructure-to-hcl2:"module_dir" cty:"module_dir"`
 	Module               *string           `mapstructure:"module" cty:"module"`
 	WorkingDirectory     *string           `mapstructure:"working_directory" cty:"working_directory"`
 	Params               map[string]string `mapstructure:"params" cty:"params"`
@@ -51,7 +51,7 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"version":                    &hcldec.AttrSpec{Name: "version", Type: cty.String, Required: false},
 		"bootstrap_command":          &hcldec.AttrSpec{Name: "bootstrap_command", Type: cty.String, Required: false},
 		"prevent_bootstrap_sudo":     &hcldec.AttrSpec{Name: "prevent_bootstrap_sudo", Type: cty.Bool, Required: false},
-		"module_dirs":                &hcldec.BlockListSpec{TypeName: "module_dirs", Nested: hcldec.ObjectSpec((*FlatModuleDir)(nil).HCL2Spec())},
+		"module_dir":                 &hcldec.BlockListSpec{TypeName: "module_dir", Nested: hcldec.ObjectSpec((*FlatModuleDir)(nil).HCL2Spec())},
 		"module":                     &hcldec.AttrSpec{Name: "module", Type: cty.String, Required: false},
 		"working_directory":          &hcldec.AttrSpec{Name: "working_directory", Type: cty.String, Required: false},
 		"params":                     &hcldec.BlockAttrsSpec{TypeName: "params", ElementType: cty.String, Required: false},

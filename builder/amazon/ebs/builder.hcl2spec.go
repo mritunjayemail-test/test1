@@ -119,8 +119,8 @@ type FlatConfig struct {
 	WinRMInsecure                             *bool                                  `mapstructure:"winrm_insecure" cty:"winrm_insecure"`
 	WinRMUseNTLM                              *bool                                  `mapstructure:"winrm_use_ntlm" cty:"winrm_use_ntlm"`
 	SSHInterface                              *string                                `mapstructure:"ssh_interface" cty:"ssh_interface"`
-	AMIMappings                               []common.FlatBlockDevice               `mapstructure:"ami_block_device_mappings" required:"false" cty:"ami_block_device_mappings"`
-	LaunchMappings                            []common.FlatBlockDevice               `mapstructure:"launch_block_device_mappings" required:"false" cty:"launch_block_device_mappings"`
+	AMIMappings                               []common.FlatBlockDevice               `mapstructure:"ami_block_device_mappings" mapstructure-to-hcl2:"ami_block_device_mapping" required:"false" cty:"ami_block_device_mapping"`
+	LaunchMappings                            []common.FlatBlockDevice               `mapstructure:"launch_block_device_mappings" mapstructure-to-hcl2:"launch_block_device_mapping" required:"false" cty:"launch_block_device_mapping"`
 	VolumeRunTags                             common.TagMap                          `mapstructure:"run_volume_tags" cty:"run_volume_tags"`
 	NoEphemeral                               *bool                                  `mapstructure:"no_ephemeral" required:"false" cty:"no_ephemeral"`
 }
@@ -246,8 +246,8 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"winrm_insecure":                        &hcldec.AttrSpec{Name: "winrm_insecure", Type: cty.Bool, Required: false},
 		"winrm_use_ntlm":                        &hcldec.AttrSpec{Name: "winrm_use_ntlm", Type: cty.Bool, Required: false},
 		"ssh_interface":                         &hcldec.AttrSpec{Name: "ssh_interface", Type: cty.String, Required: false},
-		"ami_block_device_mappings":             &hcldec.BlockListSpec{TypeName: "ami_block_device_mappings", Nested: hcldec.ObjectSpec((*common.FlatBlockDevice)(nil).HCL2Spec())},
-		"launch_block_device_mappings":          &hcldec.BlockListSpec{TypeName: "launch_block_device_mappings", Nested: hcldec.ObjectSpec((*common.FlatBlockDevice)(nil).HCL2Spec())},
+		"ami_block_device_mapping":              &hcldec.BlockListSpec{TypeName: "ami_block_device_mapping", Nested: hcldec.ObjectSpec((*common.FlatBlockDevice)(nil).HCL2Spec())},
+		"launch_block_device_mapping":           &hcldec.BlockListSpec{TypeName: "launch_block_device_mapping", Nested: hcldec.ObjectSpec((*common.FlatBlockDevice)(nil).HCL2Spec())},
 		"run_volume_tags":                       &hcldec.BlockAttrsSpec{TypeName: "run_volume_tags", ElementType: cty.String, Required: false},
 		"no_ephemeral":                          &hcldec.AttrSpec{Name: "no_ephemeral", Type: cty.Bool, Required: false},
 	}

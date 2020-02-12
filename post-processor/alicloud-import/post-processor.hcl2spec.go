@@ -39,7 +39,7 @@ type FlatConfig struct {
 	AlicloudImageIgnoreDataDisks      *bool                        `mapstructure:"image_ignore_data_disks" required:"false" cty:"image_ignore_data_disks"`
 	AlicloudImageTags                 map[string]string            `mapstructure:"tags" required:"false" cty:"tags"`
 	ECSSystemDiskMapping              *ecs.FlatAlicloudDiskDevice  `mapstructure:"system_disk_mapping" required:"false" cty:"system_disk_mapping"`
-	ECSImagesDiskMappings             []ecs.FlatAlicloudDiskDevice `mapstructure:"image_disk_mappings" required:"false" cty:"image_disk_mappings"`
+	ECSImagesDiskMappings             []ecs.FlatAlicloudDiskDevice `mapstructure:"image_disk_mappings" mapstructure-to-hcl2:"image_disk_mapping" required:"false" cty:"image_disk_mapping"`
 	AssociatePublicIpAddress          *bool                        `mapstructure:"associate_public_ip_address" cty:"associate_public_ip_address"`
 	ZoneId                            *string                      `mapstructure:"zone_id" required:"false" cty:"zone_id"`
 	IOOptimized                       *bool                        `mapstructure:"io_optimized" required:"false" cty:"io_optimized"`
@@ -153,7 +153,7 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"image_ignore_data_disks":      &hcldec.AttrSpec{Name: "image_ignore_data_disks", Type: cty.Bool, Required: false},
 		"tags":                         &hcldec.BlockAttrsSpec{TypeName: "tags", ElementType: cty.String, Required: false},
 		"system_disk_mapping":          &hcldec.BlockSpec{TypeName: "system_disk_mapping", Nested: hcldec.ObjectSpec((*ecs.FlatAlicloudDiskDevice)(nil).HCL2Spec())},
-		"image_disk_mappings":          &hcldec.BlockListSpec{TypeName: "image_disk_mappings", Nested: hcldec.ObjectSpec((*ecs.FlatAlicloudDiskDevice)(nil).HCL2Spec())},
+		"image_disk_mapping":           &hcldec.BlockListSpec{TypeName: "image_disk_mapping", Nested: hcldec.ObjectSpec((*ecs.FlatAlicloudDiskDevice)(nil).HCL2Spec())},
 		"associate_public_ip_address":  &hcldec.AttrSpec{Name: "associate_public_ip_address", Type: cty.Bool, Required: false},
 		"zone_id":                      &hcldec.AttrSpec{Name: "zone_id", Type: cty.String, Required: false},
 		"io_optimized":                 &hcldec.AttrSpec{Name: "io_optimized", Type: cty.Bool, Required: false},

@@ -49,7 +49,7 @@ type TencentCloudRunConfig struct {
 	// -  `disk_type` - Type of the data disk. Valid choices: `CLOUD_BASIC`, `CLOUD_PREMIUM` and `CLOUD_SSD`.
 	// -  `disk_size` - Size of the data disk.
 	// -  `disk_snapshot_id` - Id of the snapshot for a data disk.
-	DataDisks []tencentCloudDataDisk `mapstructure:"data_disks"`
+	DataDisks []tencentCloudDataDisk `mapstructure:"data_disks" mapstructure-to-hcl2:"data_disk"`
 	// Specify vpc your cvm will be launched by.
 	VpcId string `mapstructure:"vpc_id" required:"false"`
 	// Specify vpc name you will create. if vpc_id is not set, packer will

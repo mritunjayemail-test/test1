@@ -19,7 +19,7 @@ type ImageDestination struct {
 type ImageConfig struct {
 	ImageName             string             `mapstructure:"image_name"`
 	ImageDescription      string             `mapstructure:"image_description"`
-	ImageDestinations     []ImageDestination `mapstructure:"image_copy_to_mappings"`
+	ImageDestinations     []ImageDestination `mapstructure:"image_copy_to_mappings" mapstructure-to-hcl2:"image_copy_to_mapping"`
 	WaitImageReadyTimeout int                `mapstructure:"wait_image_ready_timeout"`
 }
 
