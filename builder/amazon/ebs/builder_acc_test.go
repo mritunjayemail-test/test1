@@ -87,6 +87,14 @@ func TestBuilderAcc_forceDeleteSnapshot(t *testing.T) {
 	})
 }
 
+func TestBuilderAcc_testSourceAmiFilter(t *testing.T) {
+	builderT.Test(t, builderT.TestCase{
+		PreCheck: func() { testAccPreCheck(t) },
+		Builder:  &Builder{},
+		Template: testSourceAmiFilter,
+	})
+}
+
 func checkSnapshotsDeleted(snapshotIds []*string) builderT.TestCheckFunc {
 	return func(artifacts []packer.Artifact) error {
 		// Verify the snapshots are gone
@@ -341,6 +349,29 @@ const testBuilderAccEncrypted = `
 		"ami_name": "packer-enc-test {{timestamp}}",
 		"encrypt_boot": true
 	}]
+}
+`
+
+const testSourceAmiFilter = `
+{
+	"builders": [{
+        "type": "test",
+        "ami_name": "packer-filter-test-{{timestamp}}",
+        "region": "us-east-1",
+        "instance_type": "t2.micro",
+        "ssh_username": "ubuntu",
+        "source_ami_filter": {
+            "filters": {
+                "name": "*ubuntu-xenial-16.04-amd64-server-*",
+                "root-device-type": "ebs",
+                "virtualization-type": "hvm"
+            },
+            "most_recent": true,
+            "owners": [
+                "099720109477"
+            ]
+        }
+    }]
 }
 `
 
